@@ -14,7 +14,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
       actionName: 'GitHub_Source',
       owner: "Virtual-Wall-Org",
-      repo: "virtual-wall-front",
+      repo: "virtual-wall",
       branch: 'master',
       oauthToken: oauthToken,
       output: sourceOutput
