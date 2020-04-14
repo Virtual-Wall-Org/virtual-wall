@@ -9,7 +9,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
 
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
     const oauthToken = cdk.SecretValue.secretsManager('virtual-wall-secrets/github/token', { jsonField: 'github-token' });
-    const project = new codebuild.PipelineProject(this, 'VirtualWallBuild');
+    const project = new codebuild.PipelineProject(this, 'VirtualWall-Build');
 
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
       actionName: 'GitHub_Source',
