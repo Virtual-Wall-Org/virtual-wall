@@ -27,6 +27,7 @@
     "@aws-cdk/aws-lambda": "^1.32.2",
     "@aws-cdk/aws-s3": "^1.32.2",
     "@aws-cdk/core": "^1.32.2",
+    "jest-junit": "^10.0.0",
     "source-map-support": "^0.5.16"
   }
 }

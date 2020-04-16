@@ -8,3 +8,10 @@ phases:
     commands:
       - npm run build
       - npm run test
+
+reports:
+  stack-tests:
+    files:
+      - jest-junit.xml
+    base-directory: test_reports
+    file-format: JunitXml
