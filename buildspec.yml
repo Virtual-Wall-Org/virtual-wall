@@ -15,3 +15,7 @@ reports:
       - jest-junit.xml
     base-directory: test_reports
     file-format: JunitXml
+
+cache:
+  paths:
+    - 'node_modules/**/*'
