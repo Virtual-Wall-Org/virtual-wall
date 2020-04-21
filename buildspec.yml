@@ -19,3 +19,8 @@ reports:
 cache:
   paths:
     - 'node_modules/**/*'
+      - cdk deploy VirtualWallStack
+
+artifacts:
+  files:
+    - static/index.html
