@@ -12,12 +12,13 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const cacheBucket = new s3.Bucket(this, "CacheBucket");
 
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
+    const buildOutput = new codepipeline.Artifact("VirtualWall-Build")
     const oauthToken = cdk.SecretValue.secretsManager('virtual-wall-secrets/github/token', { jsonField: 'github-token' });
+    
     const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-Build', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yml"),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
-        
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
@@ -30,6 +31,14 @@ export class VirtualWallCICDStack extends cdk.Stack {
       ],
       resources: ['*'],
     }));
+
+    const cdkBuild = new codebuild.PipelineProject(this, 'VirtualWall-CdkBuild', {
+      buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-cdk.yml"),
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
+      },
+      cache : codebuild.Cache.bucket(cacheBucket),
+    });
 
     const sourceAction = new codepipeline_actions.GitHubSourceAction({
       actionName: 'GitHub_Source',
@@ -55,8 +64,26 @@ export class VirtualWallCICDStack extends cdk.Stack {
               actionName: 'CodeBuild',
               project: buildProject,
               input: sourceOutput,
-              outputs: [new codepipeline.Artifact()], // optional
-            })
+              outputs: [], 
+            }),
+            new codepipeline_actions.CodeBuildAction({
+              actionName: 'CDKBuild',
+              project: cdkBuild,
+              input: sourceOutput,
+              outputs: [buildOutput],
+            }),
+          ],
+        },
+        {
+          stageName: 'Deploy',
+          actions: [
+            new codepipeline_actions.CloudFormationCreateUpdateStackAction({
+              actionName: 'DeployStack',
+              templatePath: buildOutput.atPath('VirtualWallStack.template.json'),
+              stackName: 'VirtualWallStack',
+              adminPermissions: true,
+              extraInputs: [buildOutput],
+            }),
           ],
         },
       ],
