@@ -1,8 +1,53 @@
 <!DOCTYPE html>
-<html>
+<meta charset="utf-8">
+<title>Virtual WhiteBoard V0.0</title>
+<script src="https://d3js.org/d3.v5.min.js"></script>
 <body>
 
-<h1>VirtualWall</h1>
+<div id="container"></div>
 
+<script>
+  var width = window.innerWidth; height = window.innerHeight;
+  var canvas = d3.select('#container').append('canvas').attr('width', width).attr('height', height);
+  var context = canvas.node().getContext('2d');
+  const strokes = context.canvas.value = [];
+  const curve = d3.curveBasis(context);
+  const redo = [];
+
+  context.lineJoin = "round";
+  context.lineCap = "round";
+
+  function render() {
+    context.clearRect(0, 0, width, height);
+    for (const stroke of strokes) {
+      context.beginPath();
+      curve.lineStart();
+      for (const point of stroke) {
+        curve.point(...point);
+      }
+      if (stroke.length === 1) curve.point(...stroke[0]);
+      curve.lineEnd();
+      context.lineWidth = 1;
+      context.strokeStyle = "#000000"
+      context.stroke();
+    }
+  }
+
+  d3.select(context.canvas).call(d3.drag()
+      .container(context.canvas)
+      .subject(dragsubject)
+      .on("start drag", saveposition)
+      .on("start.render drag.render", render));
+
+  function dragsubject() {
+    const stroke = [];
+    strokes.push(stroke);
+    return stroke;
+  }
+
+  function saveposition() {
+    d3.event.subject.push([d3.event.x, d3.event.y]);
+  }
+
+</script>
 </body>
-</html>
