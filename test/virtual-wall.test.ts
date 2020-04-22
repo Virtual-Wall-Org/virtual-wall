@@ -1,13 +1,11 @@
-import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
+import { expect as expectCDK, countResources } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
 import VirtualWall = require('../lib/virtual-wall-stack');
 
-test('Empty Stack', () => {
+test('Has an S3 Bucket', () => {
     const app = new cdk.App();
     // WHEN
     const stack = new VirtualWall.VirtualWallStack(app, 'MyTestStack');
     // THEN
-    expectCDK(stack).to(matchTemplate({
-      "Resources": {}
-    }, MatchStyle.EXACT))
+    expectCDK(stack).to(countResources('AWS::S3::Bucket', 1));
 });
