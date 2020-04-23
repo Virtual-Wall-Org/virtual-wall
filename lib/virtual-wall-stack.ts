@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from "@aws-cdk/aws-s3";
 import { CfnOutput } from '@aws-cdk/core';
 import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
->>>>>>> Stashed changes
 
 export class VirtualWallStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
