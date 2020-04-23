@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <title>Virtual WhiteBoard V0.0</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <body>
 
-<div id="container"></div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-2">
+        <a class="btn btn-secondary" href="#">Clear</a>
+        <input class="btn btn-secondary" type="number" name="sizes" value=13  style="width:90px;">
+        <br><br>
+        <select>
+          <option value="o1">Strokes</option>
+          <option value="o2">Rect</option>
+          <option value="o3">Circle</option>
+          <option value="o4">Text</option>
+        </select></div>
+      <div class="w-75 col-lg-10" id="container"></div>
+    </div>
+  </div>
+
 
 <script>
-  var width = window.innerWidth; height = window.innerHeight;
+  var width = document.getElementById("container").offsetWidth;
+  height = window.innerHeight;
   var canvas = d3.select('#container').append('canvas').attr('width', width).attr('height', height);
   var context = canvas.node().getContext('2d');
-  const strokes = context.canvas.value = [];
+  const wallobject = new Map();
+  wallobject.set("strokes",[]);
+//  wallobject.set("rect",[]);
+//  wallobject.set("line",[]);
   const curve = d3.curveBasis(context);
-  const redo = [];
 
   context.lineJoin = "round";
   context.lineCap = "round";
-
+  context.fillStyle = "#DDDDDD";
+  context.fillRect(0, 0, width, height);
   function render() {
-    context.clearRect(0, 0, width, height);
-    for (const stroke of strokes) {
+    
+    context.fillRect(0, 0, width, height);
+    for (const stroke of wallobject.get("strokes")) {
       context.beginPath();
       curve.lineStart();
       for (const point of stroke) {
+        //console.log(point)
         curve.point(...point);
       }
       if (stroke.length === 1) curve.point(...stroke[0]);
@@ -37,11 +63,14 @@
       .container(context.canvas)
       .subject(dragsubject)
       .on("start drag", saveposition)
-      .on("start.render drag.render", render));
+      .on("start.render drag.render", render)
+      .on("end",log));
+
+  function log() {console.log(wallobject)}
 
   function dragsubject() {
     const stroke = [];
-    strokes.push(stroke);
+    wallobject.get("strokes").push(stroke);
     return stroke;
   }
 
