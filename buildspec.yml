@@ -21,5 +21,6 @@ cache:
     - 'node_modules/**/*'
 
 artifacts:
+  base-directory: static
   files:
-    - static/index.html
+    - '**/*'
