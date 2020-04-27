@@ -7,7 +7,7 @@ test('Has an S3 Bucket', () => {
     // WHEN
     const stack = new VirtualWall.VirtualWallStack(app, 'MyTestStack');
     // THEN
-    expectCDK(stack).to(countResources('AWS::S3::Bucket', 3));
+    expectCDK(stack).to(countResources('AWS::S3::Bucket', 1));
 
     expectCDK(stack).to(haveOutput({outputName: 'bucketName'}));
 });

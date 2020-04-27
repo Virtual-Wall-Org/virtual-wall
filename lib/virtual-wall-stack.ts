@@ -16,19 +16,22 @@ export class VirtualWallStack extends cdk.Stack {
     new CfnOutput(this, "bucketName", {
       value: siteBucket.bucketName
     })
-    const sourceBucketProd = new s3.Bucket(this, 'production');
-    const sourceBucketTest = new s3.Bucket(this, 'test');
 
-    const distribution = new CloudFrontWebDistribution(this, 'MyDistribution', {
+    const distribution = new CloudFrontWebDistribution(this, 'Distribution', {
     originConfigs: [
         {
             s3OriginSource: {
-                s3BucketSource: sourceBucketProd
+                s3BucketSource: siteBucket
             },
             behaviors : [ {isDefaultBehavior: true}]
         }
     ]
   });
+
+  new CfnOutput(this, "domainName", {
+    value: distribution.domainName
+  })
+  
 
   }
 }
