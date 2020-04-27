@@ -3,15 +3,9 @@ import * as s3 from "@aws-cdk/aws-s3";
 import { CfnOutput, Tag } from '@aws-cdk/core';
 import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
 
-export interface VirtualWallStackProps extends cdk.StackProps {
-  readonly envName: string;
-}
-
 export class VirtualWallStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: VirtualWallStackProps) {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    Tag.add(this, "environment", props?.envName || "unknown");
 
     const siteBucket = new s3.Bucket(this, "SiteBucket", {
       websiteIndexDocument: 'index.html',

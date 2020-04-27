@@ -119,9 +119,6 @@ export class VirtualWallCICDStack extends cdk.Stack {
       extraInputs: [cdkBuildOutput],
       output: cloudFormationOutput,
       outputFileName: 'cloudformation_output',
-      parameterOverrides: {
-        envName : env
-      },
       runOrder: 2,
       variablesNamespace: 'cfn' + env
     });
