@@ -13,7 +13,6 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
     const cdkBuildOutput = new codepipeline.Artifact("VirtualWall-Build")
     const codeBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
-    const cloudFormationOutput = new codepipeline.Artifact("VirtualWall-CloudFormation")
 
     const pipeline = new codepipeline.Pipeline(this, 'VirtualWall-Pipeline', {});
     pipeline.addStage({
@@ -32,12 +31,28 @@ export class VirtualWallCICDStack extends cdk.Stack {
     });
 
     pipeline.addStage({
-      stageName: 'Deploy',
+      stageName: 'DeployToTest',
       actions: [
-        this.createStack(cdkBuildOutput, cloudFormationOutput),
-        this.deployToS3(codeBuildOutput, pipeline),
+        this.createStack(cdkBuildOutput, "Test"),
+        this.deployToS3(codeBuildOutput, pipeline, "Test"),
       ],
-    })
+    });
+
+    const approval = new codepipeline_actions.ManualApprovalAction({
+      actionName: 'ManualApproval'
+    });
+
+    pipeline.addStage({
+      stageName: 'DeployToProd',
+      actions: [
+        approval,
+        this.createStack(cdkBuildOutput, "Prod"),
+        this.deployToS3(codeBuildOutput, pipeline, "Prod"),
+      ],
+    });
+
+    
+
   }
 
   private githubSource(sourceOutput: codepipeline.Artifact) {
@@ -94,21 +109,26 @@ export class VirtualWallCICDStack extends cdk.Stack {
     });
   }
 
-  private createStack(cdkBuildOutput: codepipeline.Artifact, cloudFormationOutput: codepipeline.Artifact): codepipeline.IAction {
+  private createStack(cdkBuildOutput: codepipeline.Artifact, env: string): codepipeline.IAction {
+    const cloudFormationOutput = new codepipeline.Artifact("VirtualWall-CloudFormation" + env)
     return new codepipeline_actions.CloudFormationCreateUpdateStackAction({
-      actionName: 'DeployStack',
+      actionName: 'DeployStack' + env,
       templatePath: cdkBuildOutput.atPath('VirtualWallStack.template.json'),
-      stackName: 'VirtualWallStack',
+      stackName: 'VirtualWallStack' + env,
       adminPermissions: true,
       extraInputs: [cdkBuildOutput],
       output: cloudFormationOutput,
       outputFileName: 'cloudformation_output',
-      variablesNamespace: 'cfn'
+      parameterOverrides: {
+        envName : env
+      },
+      runOrder: 2,
+      variablesNamespace: 'cfn' + env
     });
   }
 
-  private deployToS3(codeBuildOutput: codepipeline.Artifact, pipeline: codepipeline.Pipeline): codepipeline.IAction {
-    const role = new iam.Role(this, "WriteToS3", {
+  private deployToS3(codeBuildOutput: codepipeline.Artifact, pipeline: codepipeline.Pipeline, env: string): codepipeline.IAction {
+    const role = new iam.Role(this, "WriteToS3" + env, {
       assumedBy : pipeline.role
     });
     role.addToPolicy(new iam.PolicyStatement({
@@ -116,10 +136,10 @@ export class VirtualWallCICDStack extends cdk.Stack {
       resources: ['*'],
     }));
     return new codepipeline_actions.S3DeployAction({
-      actionName: 'S3_Deploy',
-      bucket: s3.Bucket.fromBucketName(this, 'DeployBucket', '#{cfn.bucketName}'),
+      actionName: 'S3_Deploy' + env,
+      bucket: s3.Bucket.fromBucketName(this, 'DeployBucket' + env, '#{cfn' + env + '.bucketName}'),
       input: codeBuildOutput,
-      runOrder: 2,
+      runOrder: 3,
       role: role
     });
   }
