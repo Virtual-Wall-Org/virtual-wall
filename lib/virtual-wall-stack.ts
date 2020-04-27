@@ -7,7 +7,11 @@ export class VirtualWallStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const siteBucket = new s3.Bucket(this, "SiteBucket");
+    const siteBucket = new s3.Bucket(this, "SiteBucket", {
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'error.html',
+      publicReadAccess: true,
+    });
 
     new CfnOutput(this, "bucketName", {
       value: siteBucket.bucketName
