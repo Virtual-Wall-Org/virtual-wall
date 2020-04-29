@@ -38,20 +38,13 @@ export class VirtualWallCICDStack extends cdk.Stack {
       ],
     });
 
-    const approval = new codepipeline_actions.ManualApprovalAction({
-      actionName: 'ManualApproval'
-    });
-
     pipeline.addStage({
       stageName: 'DeployToProd',
       actions: [
-        approval,
         this.createStack(cdkBuildOutput, "Prod"),
         this.deployToS3(codeBuildOutput, pipeline, "Prod"),
       ],
-    });
-
-    
+    });  
 
   }
 
