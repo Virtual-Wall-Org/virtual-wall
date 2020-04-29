@@ -1,4 +1,4 @@
-import { expect as expectCDK, countResources, haveOutput } from '@aws-cdk/assert';
+import { expect as expectCDK, countResources, haveOutput, haveResourceLike, haveResource } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
 import VirtualWall = require('../lib/virtual-wall-stack');
 
@@ -6,12 +6,46 @@ const app = new cdk.App();
 const stack = new VirtualWall.VirtualWallStack(app, 'MyTestStack');
 
 test('Has an S3 Bucket', () => {
-    // THEN
-    expectCDK(stack).to(countResources('AWS::S3::Bucket', 1));
-    expectCDK(stack).to(haveOutput({outputName: 'bucketName'}));
+    expectCDK(stack).to(haveResourceLike('AWS::S3::Bucket', {
+        WebsiteConfiguration: {
+            ErrorDocument: "error.html",
+            IndexDocument: "index.html"
+        }
+    }));
+    expectCDK(stack).to(haveOutput({ outputName: 'bucketName' }));
 });
 
 test('Has an CloudFront', () => {
-    expectCDK(stack).to(countResources('AWS::CloudFront::Distribution', 1));
-    expectCDK(stack).to(haveOutput({outputName: 'domainName'}));
+    expectCDK(stack).to(haveResourceLike('AWS::CloudFront::Distribution', {
+        "DistributionConfig": {
+            "DefaultCacheBehavior": {
+                "AllowedMethods": [
+                    "GET",
+                    "HEAD"
+                ],
+                "CachedMethods": [
+                    "GET",
+                    "HEAD"
+                ],
+                "Compress": true,
+                "ForwardedValues": {
+                    "Cookies": {
+                        "Forward": "none"
+                    },
+                    "QueryString": false
+                },
+                "TargetOriginId": "origin1",
+                "ViewerProtocolPolicy": "redirect-to-https"
+            },
+            "DefaultRootObject": "index.html",
+            "Enabled": true,
+            "HttpVersion": "http2",
+            "IPV6Enabled": true,
+            "PriceClass": "PriceClass_100",
+            "ViewerCertificate": {
+                "CloudFrontDefaultCertificate": true
+            }
+        }
+    }));
+    expectCDK(stack).to(haveOutput({ outputName: 'domainName' }));
 });
