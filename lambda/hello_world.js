@@ -8,7 +8,7 @@ exports.helloWorld = async function (event, context) {
                 return {
                     statusCode: 200,
                     headers: {},
-                    body: "Hello World"
+                    body: JSON.stringify("Hello World")
                 };
             }
         }
