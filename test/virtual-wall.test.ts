@@ -49,3 +49,11 @@ test('Has an CloudFront', () => {
     }));
     expectCDK(stack).to(haveOutput({ outputName: 'domainName' }));
 });
+
+test('Has a Lambda Function', () => {
+    expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
+        "Handler": "hello_world.helloWorld",
+        "Runtime": "nodejs10.x"
+    }));
+});
+

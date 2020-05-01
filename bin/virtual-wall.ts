@@ -5,5 +5,7 @@ import { VirtualWallStack } from '../lib/virtual-wall-stack';
 import { VirtualWallCICDStack } from '../lib/virtual-wall-cicd-stack';
 
 const app = new cdk.App();
-new VirtualWallStack(app, 'VirtualWallStack');
-new VirtualWallCICDStack(app, 'VirtualWallCICDStack');
+const mainStack = new VirtualWallStack(app, 'VirtualWallStack');
+new VirtualWallCICDStack(app, 'VirtualWallCICDStack', {
+    lambdaCode : mainStack.lambdaCode
+});

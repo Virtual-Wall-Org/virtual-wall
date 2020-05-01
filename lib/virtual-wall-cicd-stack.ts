@@ -4,9 +4,14 @@ import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from "@aws-cdk/aws-s3";
+import * as lambda from '@aws-cdk/aws-lambda';
+
+export interface CICDStackProps extends cdk.StackProps {
+  readonly lambdaCode: lambda.CfnParametersCode;
+}
 
 export class VirtualWallCICDStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.Construct, id: string, props: CICDStackProps) {
     super(scope, id, props);
 
     const cacheBucket = new s3.Bucket(this, "CacheBucket");
@@ -35,7 +40,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     pipeline.addStage({
       stageName: 'DeployToTest',
       actions: [
-        this.createStack(cdkBuildOutput, "Test"),
+        this.createStack(cdkBuildOutput, lambdaBuildOutput, "Test", props),
         this.deployToS3(siteBuildOutput, pipeline, "Test"),
       ],
     });
@@ -43,7 +48,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     pipeline.addStage({
       stageName: 'DeployToProd',
       actions: [
-        this.createStack(cdkBuildOutput, "Prod"),
+        this.createStack(cdkBuildOutput, lambdaBuildOutput, "Prod", props),
         this.deployToS3(siteBuildOutput, pipeline, "Prod"),
       ],
     });  
@@ -120,14 +125,17 @@ export class VirtualWallCICDStack extends cdk.Stack {
     });
   }
 
-  private createStack(cdkBuildOutput: codepipeline.Artifact, env: string): codepipeline.IAction {
+  private createStack(cdkBuildOutput: codepipeline.Artifact, lambdaBuildOutput: codepipeline.Artifact, env: string, props: CICDStackProps): codepipeline.IAction {
     const cloudFormationOutput = new codepipeline.Artifact("VirtualWall-CloudFormation" + env)
     return new codepipeline_actions.CloudFormationCreateUpdateStackAction({
       actionName: 'DeployStack' + env,
       templatePath: cdkBuildOutput.atPath('VirtualWallStack.template.json'),
       stackName: 'VirtualWallStack' + env,
       adminPermissions: true,
-      extraInputs: [cdkBuildOutput],
+      parameterOverrides: {
+        ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
+      },
+      extraInputs: [lambdaBuildOutput],
       output: cloudFormationOutput,
       outputFileName: 'cloudformation_output',
       runOrder: 2,

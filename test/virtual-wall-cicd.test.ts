@@ -1,9 +1,14 @@
 import { expect as expectCDK, countResources, haveResourceLike } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
-import VirtualWall = require('../lib/virtual-wall-cicd-stack');
+import { VirtualWallCICDStack } from '../lib/virtual-wall-cicd-stack';
+import { VirtualWallStack } from '../lib/virtual-wall-stack';
 
 const app = new cdk.App();
-const stack = new VirtualWall.VirtualWallCICDStack(app, 'MyTestStack');
+const mainStack = new VirtualWallStack(app, 'VirtualWallStack');
+const stack = new VirtualWallCICDStack(app, 'MyTestStack', { 
+    lambdaCode: mainStack.lambdaCode 
+});
+
 test('Has two S3 Bucket for CICD', () => {
     expectCDK(stack).to(countResources('AWS::S3::Bucket', 2));
 });

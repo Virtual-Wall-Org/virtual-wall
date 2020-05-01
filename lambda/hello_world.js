@@ -1,5 +1,5 @@
 
-exports.main = async function (event, context) {
+exports.helloWorld = async function (event, context) {
     try {
         var method = event.httpMethod;
 
