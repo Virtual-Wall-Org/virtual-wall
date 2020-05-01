@@ -3,6 +3,7 @@ import * as s3 from "@aws-cdk/aws-s3";
 import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnOutput, Tag } from '@aws-cdk/core';
 import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
+import * as apigateway from "@aws-cdk/aws-apigateway";
 
 export class VirtualWallStack extends cdk.Stack {
   public readonly lambdaCode: lambda.CfnParametersCode;
@@ -12,13 +13,27 @@ export class VirtualWallStack extends cdk.Stack {
 
     this.lambdaCode = lambda.Code.fromCfnParameters();
 
-    new lambda.Function(this, 'HelloWorld', {
+    const handler = new lambda.Function(this, 'HelloWorldFunction', {
       code: this.lambdaCode,
       handler: 'hello_world.helloWorld',
       runtime: lambda.Runtime.NODEJS_10_X,
     });
 
+    const api = new apigateway.RestApi(this, "HelloWorldApi", {
+      restApiName: "Hello World Service",
+      description: "This service returns hello world."
+    });
+
+    const HelloWorldIntegration = new apigateway.LambdaIntegration(handler, {
+      requestTemplates: { "application/json": '{ "statusCode": "200" }' }
+    });
+
+    api.root.addMethod("GET", HelloWorldIntegration);
+
     this.declareSite();
+    new CfnOutput(this, "apiUrl", {
+      value: api.url
+    });
 
   }
 

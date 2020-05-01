@@ -57,3 +57,14 @@ test('Has a Lambda Function', () => {
     }));
 });
 
+test('Has an API ', () => {
+    expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::RestApi', {
+        "Description": "This service returns hello world.",
+        "Name": "Hello World Service"
+    }));
+    expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Method', {
+        "HttpMethod": "GET"
+    }));
+    expectCDK(stack).to(haveOutput({ outputName: 'apiUrl' }));
+});
+
