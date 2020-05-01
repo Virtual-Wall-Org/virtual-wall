@@ -13,6 +13,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
     const cdkBuildOutput = new codepipeline.Artifact("VirtualWall-Build")
     const siteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
+    const lambdaBuildOutput = new codepipeline.Artifact("VirtualWall-Lambda-Build")
 
     const pipeline = new codepipeline.Pipeline(this, 'VirtualWall-Pipeline', {});
     pipeline.addStage({
@@ -26,6 +27,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
       stageName: 'Build',
       actions: [
         this.buildSite(cacheBucket, sourceOutput, siteBuildOutput),
+        this.buildLambda(cacheBucket, sourceOutput, lambdaBuildOutput),
         this.buildCdk(cacheBucket, sourceOutput, cdkBuildOutput),
       ],
     });
@@ -99,6 +101,22 @@ export class VirtualWallCICDStack extends cdk.Stack {
       project: buildProject,
       input: sourceOutput,
       outputs: [codeBuildOutput],
+    });
+  }
+
+  private buildLambda(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, lambdaBuildOutput: codepipeline.Artifact): codepipeline.IAction {
+    const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildLambda', {
+      buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-lambda.yml"),
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
+      },
+      cache : codebuild.Cache.bucket(cacheBucket),
+    });
+    return new codepipeline_actions.CodeBuildAction({
+      actionName: 'BuildLambda',
+      project: buildProject,
+      input: sourceOutput,
+      outputs: [lambdaBuildOutput],
     });
   }
 
