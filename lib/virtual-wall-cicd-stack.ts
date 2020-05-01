@@ -69,6 +69,15 @@ export class VirtualWallCICDStack extends cdk.Stack {
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
+    cdkBuild.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        'codebuild:CreateReportGroup',
+        'codebuild:CreateReport',
+        'codebuild:BatchPutTestCases',
+        'codebuild:UpdateReport',
+      ],
+      resources: ['*'],
+    }));
     return new codepipeline_actions.CodeBuildAction({
       actionName: 'CDKBuild',
       project: cdkBuild,
@@ -85,15 +94,6 @@ export class VirtualWallCICDStack extends cdk.Stack {
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
-    buildProject.addToRolePolicy(new iam.PolicyStatement({
-      actions: [
-        'codebuild:CreateReportGroup',
-        'codebuild:CreateReport',
-        'codebuild:BatchPutTestCases',
-        'codebuild:UpdateReport',
-      ],
-      resources: ['*'],
-    }));
     return new codepipeline_actions.CodeBuildAction({
       actionName: 'CodeBuild',
       project: buildProject,
