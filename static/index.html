@@ -6,12 +6,19 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.2.0/dist/peerjs.min.js"></script>
 <body>
 
 
   <div class="container">
     <div class="row">
       <div class="col-lg-2">
+        <div id="receiver-id" style="font-weight: bold;" title="Copy this ID to the input on send.html.">Current ID:</div>
+        <div id="status">Status unknow</div>
+        <div class="message" id="message"></div>
+        <span style="font-weight: bold">ID: </span>
+        <input type="text" id="receiver-id-connect" title="Input the ID from receive.html">
+        <button id="connect-button">Connect</button>
         <a class="btn btn-secondary" href="#">Clear</a>
         <input class="btn btn-secondary" type="number" name="sizes" value=13  style="width:90px;">
         <br><br>
@@ -20,7 +27,8 @@
           <option value="o2">Rect</option>
           <option value="o3">Circle</option>
           <option value="o4">Text</option>
-        </select></div>
+        </select>
+      </div>
       <div class="w-75 col-lg-10" id="container"></div>
     </div>
   </div>
@@ -36,11 +44,12 @@
 //  wallobject.set("rect",[]);
 //  wallobject.set("line",[]);
   const curve = d3.curveBasis(context);
-
+  const symbol=d3.symbol().type(d3.symbolCross).context(context).size("150px");
   context.lineJoin = "round";
   context.lineCap = "round";
   context.fillStyle = "#DDDDDD";
   context.fillRect(0, 0, width, height);
+
   function render() {
     
     context.fillRect(0, 0, width, height);
@@ -51,22 +60,30 @@
         //console.log(point)
         curve.point(...point);
       }
+      
       if (stroke.length === 1) curve.point(...stroke[0]);
       curve.lineEnd();
+      
       context.lineWidth = 1;
       context.strokeStyle = "#000000"
-      context.stroke();
+      
+      context.stroke()
+      
     }
   }
 
+
+
   d3.select(context.canvas).call(d3.drag()
-      .container(context.canvas)
+  .container(context.canvas)
       .subject(dragsubject)
       .on("start drag", saveposition)
       .on("start.render drag.render", render)
       .on("end",log));
 
-  function log() {console.log(wallobject)}
+  function log() {
+    console.log(wallobject);
+    conn.send(JSON.stringify(wallobject.get("strokes")))};
 
   function dragsubject() {
     const stroke = [];
@@ -74,9 +91,186 @@
     return stroke;
   }
 
-  function saveposition() {
-    d3.event.subject.push([d3.event.x, d3.event.y]);
+  function saveposition() {  
+      d3.event.subject.push([d3.event.x, d3.event.y]);
   }
+  window.addEventListener('contextmenu', function (e) { 
+  e.preventDefault(); 
+}, false);
 
 </script>
+
+
+<script>
+  var lastPeerId = null;
+  var peer = null; // Own peer object
+  var peerId = null;
+  var conn = null;
+  var recvId = document.getElementById("receiver-id");
+  var status_id = document.getElementById("status");
+  var connectButton = document.getElementById("connect-button");
+  var recvIdInput = document.getElementById("receiver-id-connect");   
+  function initialize() {
+                      // Create own peer object with connection to shared PeerJS server
+                      peer = new Peer(null, {
+                          debug: 2
+                      });
+                      peer.on('open', function (id) {
+                        // Workaround for peer.reconnect deleting previous id
+                        if (peer.id === null) {
+                            console.log('Received null id from peer open');
+                            peer.id = lastPeerId;
+                        } else {
+                            lastPeerId = peer.id;
+                        }
+  
+                        console.log('ID: ' + peer.id);
+                        recvId.innerHTML = "Current ID: " + peer.id;
+                        console.log(status_id);
+                        console.log(recvId);
+                        status_id.innerHTML = "Awaiting connection...";
+                    });
+                    peer.on('connection', function (c) {
+                        // Allow only a single connection
+                        if (conn) {
+                            c.on('open', function() {
+                                c.send("Already connected to another client");
+                                setTimeout(function() { c.close(); }, 500);
+                            });
+                            return;
+                        }
+  
+                        conn = c;
+                        console.log("Connected to: " + conn.peer);
+                        status_id.innerHTML = "Connected"
+                        
+                        ready();
+                        setTimeout(function () {
+                          console.log("send message");
+                          conn.send(JSON.stringify(wallobject.get("strokes")));
+                                }
+                            , 5000);
+                        
+                    });
+                    peer.on('disconnected', function () {
+                      status_id.innerHTML = "Connection lost. Please reconnect";
+                        console.log('Connection lost. Please reconnect');
+  
+                        // Workaround for peer.reconnect deleting previous id
+                        peer.id = lastPeerId;
+                        peer._lastServerId = lastPeerId;
+                        peer.reconnect();
+                    });
+                    peer.on('close', function() {
+                        conn = null;
+                        status_id.innerHTML = "Connection destroyed. Please refresh";
+                        console.log('Connection destroyed');
+                    });
+                    peer.on('error', function (err) {
+                        console.log(err);
+                        alert('' + err);
+                    });
+                };
+  
+  function add_todraw(data)
+  {
+    console.log("Data recieved n"+data.length);
+                          inter=[]
+                          console.log(JSON.parse(data));
+                          console.log(wallobject.get("strokes"));
+                          for (stroke of wallobject.get("strokes")) {
+                            inter.push(stroke.reduce(function(accumulator, currentValue, currentIndex, array) {return accumulator + currentValue[0]},0));
+                          }
+                          console.log(inter);
+                          for (externdata of JSON.parse(data)) {
+                                externreduce=externdata.reduce(function(accumulator, currentValue, currentIndex, array) {return accumulator + currentValue[0]},0);
+                                console.log(externdata);
+                                if (!(inter.includes(externreduce)))
+                                {
+                                  console.log("Add "+externreduce + " diff de " + inter);
+                                  wallobject.get("strokes").push(externdata);
+                                }
+                          }
+
+                          //wallobject.set("strokes",wallobject.get("strokes").concat(JSON.parse(inter)))
+                          render();
+
+  }
+
+  function ready() {
+                      conn.on('data', function (data) {
+                          add_todraw(data);
+                      });
+                      conn.on('close', function () {
+                          status_id.innerHTML = "Connection reset<br>Awaiting connection...";
+                          conn = null;
+                      });
+                  }
+
+  function join() {
+                      console.log("trying to join -");
+              // Close old connection
+              if (conn) {
+                  console.log("close old connection");
+                  conn.close();
+                  recvId.innerHTML="";
+              }
+              recvId.innerHTML="";
+              console.log("Connect to "+recvIdInput.value);
+              conn = peer.connect(recvIdInput.value, {
+                  reliable: true
+              });
+
+              conn.on('open', function () {
+                  status_id.innerHTML = "Connected to: " + conn.peer;
+                  console.log("Connected to: " + conn.peer);
+
+                  // Check URL params for comamnds that should be sent immediately
+                  var command = getUrlParam("command");
+                  if (command)
+                      conn.send(command);
+              });
+              // Handle incoming data (messages only since this is the signal sender)
+              conn.on('data', function (data) {
+                  console.log("Message " + data.length);
+                  add_todraw(data);
+                  //wallobject.set("strokes", wallobject.get("strokes").concat(m))
+              });
+              conn.on('close', function () {
+                  status_id.innerHTML = "Connection closed";
+              });
+          };
+
+  function getUrlParam(name) {
+              name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+              var regexS = "[\\?&]" + name + "=([^&#]*)";
+              var regex = new RegExp(regexS);
+              var results = regex.exec(window.location.href);
+              if (results == null)
+                  return null;
+              else
+                  return results[1];
+          };
+
+          /**
+           * Send a signal via the peer connection and add it to the log.
+           * This will only occur if the connection is still alive.
+           */
+  function signal(sigName) {
+              if (conn && conn.open) {
+                  conn.send(sigName);
+                  console.log(sigName + " signal sent");
+                  console.log(cueString + sigName);
+              } else {
+                  console.log('Connection is closed');
+              }
+          }
+
+          
+
+  connectButton.addEventListener('click', join);
+  initialize();
+  
+  </script>
+
 </body>
