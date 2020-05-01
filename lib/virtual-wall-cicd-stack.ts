@@ -12,7 +12,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const cacheBucket = new s3.Bucket(this, "CacheBucket");
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
     const cdkBuildOutput = new codepipeline.Artifact("VirtualWall-Build")
-    const codeBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
+    const siteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
 
     const pipeline = new codepipeline.Pipeline(this, 'VirtualWall-Pipeline', {});
     pipeline.addStage({
@@ -25,7 +25,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     pipeline.addStage({
       stageName: 'Build',
       actions: [
-        this.buildProject(cacheBucket, sourceOutput, codeBuildOutput),
+        this.buildSite(cacheBucket, sourceOutput, siteBuildOutput),
         this.buildCdk(cacheBucket, sourceOutput, cdkBuildOutput),
       ],
     });
@@ -34,7 +34,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
       stageName: 'DeployToTest',
       actions: [
         this.createStack(cdkBuildOutput, "Test"),
-        this.deployToS3(codeBuildOutput, pipeline, "Test"),
+        this.deployToS3(siteBuildOutput, pipeline, "Test"),
       ],
     });
 
@@ -42,7 +42,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
       stageName: 'DeployToProd',
       actions: [
         this.createStack(cdkBuildOutput, "Prod"),
-        this.deployToS3(codeBuildOutput, pipeline, "Prod"),
+        this.deployToS3(siteBuildOutput, pipeline, "Prod"),
       ],
     });  
 
@@ -79,15 +79,15 @@ export class VirtualWallCICDStack extends cdk.Stack {
       resources: ['*'],
     }));
     return new codepipeline_actions.CodeBuildAction({
-      actionName: 'CDKBuild',
+      actionName: 'BuildCDK',
       project: cdkBuild,
       input: sourceOutput,
       outputs: [cdkBuildOutput],
     });
   }
 
-  private buildProject(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact): codepipeline.IAction {
-    const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-Build', {
+  private buildSite(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact): codepipeline.IAction {
+    const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildSite', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yml"),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
@@ -95,7 +95,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
       cache : codebuild.Cache.bucket(cacheBucket),
     });
     return new codepipeline_actions.CodeBuildAction({
-      actionName: 'CodeBuild',
+      actionName: 'BuildSite',
       project: buildProject,
       input: sourceOutput,
       outputs: [codeBuildOutput],
