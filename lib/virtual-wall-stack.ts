@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from "@aws-cdk/aws-s3";
 import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnOutput, Tag } from '@aws-cdk/core';
-import { CloudFrontWebDistribution } from '@aws-cdk/aws-cloudfront';
+import { CloudFrontWebDistribution, CloudFrontAllowedMethods } from '@aws-cdk/aws-cloudfront';
 import * as apigateway from "@aws-cdk/aws-apigateway";
 
 export class VirtualWallStack extends cdk.Stack {
@@ -30,14 +30,14 @@ export class VirtualWallStack extends cdk.Stack {
 
     api.root.addMethod("GET", HelloWorldIntegration);
 
-    this.declareSite();
+    this.declareSite(api);
     new CfnOutput(this, "apiUrl", {
       value: api.url
     });
 
   }
 
-  private declareSite() {
+  private declareSite(api: apigateway.RestApi) {
     const siteBucket = new s3.Bucket(this, "SiteBucket", {
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'error.html',
@@ -53,9 +53,20 @@ export class VirtualWallStack extends cdk.Stack {
             s3BucketSource: siteBucket
           },
           behaviors: [{ isDefaultBehavior: true }]
+        },
+        {
+          customOriginSource: {
+            domainName: `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`
+          },
+          originPath: `/${api.deploymentStage.stageName}`,
+          behaviors: [{
+            pathPattern: '/api/*',
+            allowedMethods: CloudFrontAllowedMethods.ALL
+          }]
         }
       ]
     });
+    
     new CfnOutput(this, "domainName", {
       value: distribution.domainName
     });
