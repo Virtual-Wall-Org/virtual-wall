@@ -4,7 +4,7 @@ exports.helloWorld = async function (event, context) {
         var method = event.httpMethod;
 
         if (method === "GET") {
-            if (event.path === "/") {
+            if (event.path === "/api/") {
                 return {
                     statusCode: 200,
                     headers: {},
@@ -17,7 +17,7 @@ exports.helloWorld = async function (event, context) {
         return {
             statusCode: 400,
             headers: {},
-            body: "We only accept GET /"
+            body: JSON.stringify("We only accept GET /api/ - got " + method + " " + event.path)
         };
     } catch (error) {
         var body = error.stack || JSON.stringify(error, null, 2);
