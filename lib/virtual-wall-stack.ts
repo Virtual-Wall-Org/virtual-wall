@@ -28,7 +28,6 @@ export class VirtualWallStack extends cdk.Stack {
       requestTemplates: { "application/json": '{ "statusCode": "200" }' }
     });
 
-    api.root.addMethod("GET", HelloWorldIntegration);
     api.root.addResource("api").addMethod("GET", HelloWorldIntegration);
 
     this.declareSite(api);
