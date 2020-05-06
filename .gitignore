@@ -1,6 +1,7 @@
 *.js
 !jest.config.js
 !lambda/*
+!static/*
 *.d.ts
 node_modules
 test_reports

@@ -17,7 +17,6 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const cacheBucket = new s3.Bucket(this, "CacheBucket");
     const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
     const cdkBuildOutput = new codepipeline.Artifact("VirtualWall-Build")
-    const siteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
     const lambdaBuildOutput = new codepipeline.Artifact("VirtualWall-Lambda-Build")
 
     const pipeline = new codepipeline.Pipeline(this, 'VirtualWall-Pipeline', {});
@@ -31,25 +30,29 @@ export class VirtualWallCICDStack extends cdk.Stack {
     pipeline.addStage({
       stageName: 'Build',
       actions: [
-        this.buildSite(cacheBucket, sourceOutput, siteBuildOutput),
         this.buildLambda(cacheBucket, sourceOutput, lambdaBuildOutput),
         this.buildCdk(cacheBucket, sourceOutput, cdkBuildOutput),
       ],
     });
 
+    
+    const testSiteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-BuildTest");
     pipeline.addStage({
       stageName: 'DeployToTest',
       actions: [
         this.createStack(cdkBuildOutput, lambdaBuildOutput, "Test", props),
-        this.deployToS3(siteBuildOutput, pipeline, "Test"),
+        this.buildSite(cacheBucket, sourceOutput, testSiteBuildOutput, "Test"),
+        this.deployToS3(testSiteBuildOutput, pipeline, "Test"),
       ],
     });
 
+    const prodSiteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-BuildProd");
     pipeline.addStage({
       stageName: 'DeployToProd',
       actions: [
         this.createStack(cdkBuildOutput, lambdaBuildOutput, "Prod", props),
-        this.deployToS3(siteBuildOutput, pipeline, "Prod"),
+        this.buildSite(cacheBucket, sourceOutput, prodSiteBuildOutput, "Prod"),
+        this.deployToS3(prodSiteBuildOutput, pipeline, "Prod"),
       ],
     });  
 
@@ -93,8 +96,8 @@ export class VirtualWallCICDStack extends cdk.Stack {
     });
   }
 
-  private buildSite(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact): codepipeline.IAction {
-    const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildSite', {
+  private buildSite(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact, env: string): codepipeline.IAction {
+    const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildSite' + env, {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yml"),
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
@@ -102,10 +105,14 @@ export class VirtualWallCICDStack extends cdk.Stack {
       cache : codebuild.Cache.bucket(cacheBucket),
     });
     return new codepipeline_actions.CodeBuildAction({
-      actionName: 'BuildSite',
+      actionName: 'BuildSite' + env,
       project: buildProject,
       input: sourceOutput,
+      environmentVariables : {
+        API_URL: {value: '#{cfn' + env + '.apiUrl}'}
+      },
       outputs: [codeBuildOutput],
+      runOrder: 2,
     });
   }
 
@@ -138,12 +145,12 @@ export class VirtualWallCICDStack extends cdk.Stack {
       extraInputs: [lambdaBuildOutput],
       output: cloudFormationOutput,
       outputFileName: 'cloudformation_output',
-      runOrder: 2,
+      runOrder: 1,
       variablesNamespace: 'cfn' + env
     });
   }
 
-  private deployToS3(codeBuildOutput: codepipeline.Artifact, pipeline: codepipeline.Pipeline, env: string): codepipeline.IAction {
+  private deployToS3(siteBuildOutput: codepipeline.Artifact, pipeline: codepipeline.Pipeline, env: string): codepipeline.IAction {
     const role = new iam.Role(this, "WriteToS3" + env, {
       assumedBy : pipeline.role
     });
@@ -154,7 +161,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     return new codepipeline_actions.S3DeployAction({
       actionName: 'S3_Deploy' + env,
       bucket: s3.Bucket.fromBucketName(this, 'DeployBucket' + env, '#{cfn' + env + '.bucketName}'),
-      input: codeBuildOutput,
+      input: siteBuildOutput,
       runOrder: 3,
       role: role
     });

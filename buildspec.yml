@@ -1,5 +1,10 @@
 version: 0.2
 
+phases:
+  build:
+    commands:
+      -  sed -i "s|{{API_URL}}|$API_URL|" static/config.js
+
 artifacts:
   base-directory: static
   files:
