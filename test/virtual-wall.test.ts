@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import VirtualWall = require('../lib/virtual-wall-stack');
 
 const app = new cdk.App();
-const stack = new VirtualWall.VirtualWallStack(app, 'MyTestStack');
+const stack = new VirtualWall.VirtualWallStack(app, 'MyTestStack', { environmentType : VirtualWall.EnvironmentType.Test });
 
 test('Has an S3 Bucket', () => {
     expectCDK(stack).to(haveResourceLike('AWS::S3::Bucket', {

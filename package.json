@@ -27,6 +27,7 @@
     "@aws-cdk/aws-codepipeline-actions": "^1.36.1",
     "@aws-cdk/aws-lambda": "^1.36.1",
     "@aws-cdk/aws-s3": "^1.36.1",
+    "@aws-cdk/aws-s3-deployment": "^1.36.1",
     "@aws-cdk/core": "^1.36.1",
     "jest-junit": "^10.0.0",
     "source-map-support": "^0.5.19"
