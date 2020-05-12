@@ -14,7 +14,7 @@ test('Has two S3 Bucket for CICD', () => {
 });
 
 test('Has 3 CodeBuild Project (Site, Lambda and CDK)', () => {
-    expectCDK(stack).to(countResources('AWS::CodeBuild::Project', 4));
+    expectCDK(stack).to(countResources('AWS::CodeBuild::Project', 3));
 
     expectCDK(stack).to(haveResourceLike('AWS::CodeBuild::Project', {
         "Environment": {
