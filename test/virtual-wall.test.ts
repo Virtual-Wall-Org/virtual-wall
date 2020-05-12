@@ -53,7 +53,7 @@ test('Has an CloudFront', () => {
 test('Has a Lambda Function', () => {
     expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
         "Handler": "hello_world.helloWorld",
-        "Runtime": "nodejs10.x"
+        "Runtime": "python3.8"
     }));
 });
 

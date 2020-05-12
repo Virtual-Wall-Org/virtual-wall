@@ -42,7 +42,7 @@ export class VirtualWallStack extends cdk.Stack {
     const handler = new lambda.Function(this, 'HelloWorldFunction', {
       code: actualCode,
       handler: 'hello_world.helloWorld',
-      runtime: lambda.Runtime.NODEJS_10_X,
+      runtime: lambda.Runtime.PYTHON_3_8,
     });
     const api = new apigateway.RestApi(this, "HelloWorldApi", {
       restApiName: "Hello World Service",
