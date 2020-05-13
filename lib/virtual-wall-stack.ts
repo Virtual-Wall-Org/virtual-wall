@@ -58,6 +58,7 @@ export class VirtualWallStack extends cdk.Stack {
     });
 
     dynamoTable.grantReadWriteData(handler);
+    dynamoTable.grantFullAccess(handler);
 
     const api = new apigateway.RestApi(this, "HelloWorldApi", {
       restApiName: "Hello World Service",
