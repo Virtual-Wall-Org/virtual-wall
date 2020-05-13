@@ -57,6 +57,18 @@ test('Has a Lambda Function', () => {
     }));
 });
 
+test('Has a Dynamo DB', () => {
+    expectCDK(stack).to(haveResourceLike('AWS::DynamoDB::Table', {
+        "KeySchema": [{
+            "AttributeName": "wallId",
+            "KeyType": "HASH"
+        }],
+        "TableName": "virtualwall"
+    }));
+});
+
+
+
 test('Has an API ', () => {
     expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::RestApi', {
         "Description": "This service returns hello world.",

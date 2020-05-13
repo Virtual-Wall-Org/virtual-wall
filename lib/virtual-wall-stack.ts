@@ -2,10 +2,9 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from "@aws-cdk/aws-s3";
 import * as s3deploy from "@aws-cdk/aws-s3-deployment";
 import * as lambda from '@aws-cdk/aws-lambda';
-import { CfnOutput, Tag } from '@aws-cdk/core';
 import { CloudFrontWebDistribution, CloudFrontAllowedMethods } from '@aws-cdk/aws-cloudfront';
 import * as apigateway from "@aws-cdk/aws-apigateway";
-import { Code } from '@aws-cdk/aws-lambda';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
 export enum EnvironmentType {
   Local,
@@ -16,13 +15,15 @@ export interface VirtualWallStackProps extends cdk.StackProps {
   readonly environmentType: EnvironmentType;
 }
 
+const PRIMARY_KEY = 'wallId';
+
 export class VirtualWallStack extends cdk.Stack {
   public readonly lambdaCode: lambda.CfnParametersCode;
 
   constructor(scope: cdk.Construct, id: string, props: VirtualWallStackProps) {
     super(scope, id, props);
 
-    var actualCode : Code;
+    var actualCode : lambda.Code;
     if(props?.environmentType == EnvironmentType.Local){
       actualCode = lambda.Code.asset("lambda");
     }else{
@@ -32,18 +33,33 @@ export class VirtualWallStack extends cdk.Stack {
     const api = this.declareApi(actualCode);
     this.declareSite(api, props.environmentType);
 
-    new CfnOutput(this, "apiUrl", {
+    new cdk.CfnOutput(this, "apiUrl", {
       value: api.url
     });
 
   }
 
   private declareApi(actualCode: lambda.Code) {
+    const dynamoTable = new dynamodb.Table(this, 'wallDB', {
+      partitionKey: {
+        name: PRIMARY_KEY,
+        type: dynamodb.AttributeType.STRING
+      },
+      tableName: 'virtualwall'
+    });
+
     const handler = new lambda.Function(this, 'HelloWorldFunction', {
       code: actualCode,
       handler: 'hello_world.helloWorld',
       runtime: lambda.Runtime.PYTHON_3_8,
+      environment: {
+        TABLE_NAME: dynamoTable.tableName,
+        PRIMARY_KEY: PRIMARY_KEY
+      }
     });
+
+    dynamoTable.grantReadWriteData(handler);
+
     const api = new apigateway.RestApi(this, "HelloWorldApi", {
       restApiName: "Hello World Service",
       description: "This service returns hello world."
@@ -81,7 +97,7 @@ export class VirtualWallStack extends cdk.Stack {
         }
       ]
     });
-    new CfnOutput(this, "domainName", {
+    new cdk.CfnOutput(this, "domainName", {
       value: distribution.domainName
     });
   }
@@ -98,7 +114,7 @@ export class VirtualWallStack extends cdk.Stack {
         destinationBucket: siteBucket
       });
     }
-    new CfnOutput(this, "bucketName", {
+    new cdk.CfnOutput(this, "bucketName", {
       value: siteBucket.bucketName
     });
     return siteBucket;
