@@ -44,8 +44,7 @@ export class VirtualWallStack extends cdk.Stack {
       partitionKey: {
         name: PRIMARY_KEY,
         type: dynamodb.AttributeType.STRING
-      },
-      tableName: 'virtualwall'
+      }
     });
 
     const handler = new lambda.Function(this, 'HelloWorldFunction', {

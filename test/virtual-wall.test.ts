@@ -62,8 +62,7 @@ test('Has a Dynamo DB', () => {
         "KeySchema": [{
             "AttributeName": "wallId",
             "KeyType": "HASH"
-        }],
-        "TableName": "virtualwall"
+        }]
     }));
 });
 
