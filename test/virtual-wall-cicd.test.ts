@@ -19,7 +19,7 @@ test('Has 3 CodeBuild Project (Site, Lambda and CDK)', () => {
     expectCDK(stack).to(haveResourceLike('AWS::CodeBuild::Project', {
         "Environment": {
             "ComputeType": "BUILD_GENERAL1_SMALL",
-            "Image": "aws/codebuild/standard:2.0",
+            "Image": "aws/codebuild/standard:4.0",
             "PrivilegedMode": false,
             "Type": "LINUX_CONTAINER"
         },
@@ -31,7 +31,7 @@ test('Has 3 CodeBuild Project (Site, Lambda and CDK)', () => {
     expectCDK(stack).to(haveResourceLike('AWS::CodeBuild::Project', {
         "Environment": {
             "ComputeType": "BUILD_GENERAL1_SMALL",
-            "Image": "aws/codebuild/standard:2.0",
+            "Image": "aws/codebuild/standard:4.0",
             "PrivilegedMode": false,
             "Type": "LINUX_CONTAINER"
         },
@@ -43,7 +43,7 @@ test('Has 3 CodeBuild Project (Site, Lambda and CDK)', () => {
     expectCDK(stack).to(haveResourceLike('AWS::CodeBuild::Project', {
         "Environment": {
             "ComputeType": "BUILD_GENERAL1_SMALL",
-            "Image": "aws/codebuild/standard:2.0",
+            "Image": "aws/codebuild/standard:4.0",
             "PrivilegedMode": false,
             "Type": "LINUX_CONTAINER"
         },
