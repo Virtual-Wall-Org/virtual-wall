@@ -1,5 +1,10 @@
 version: 0.2
 
+phases:
+  build:
+    commands:
+      - bash run_test.sh
+
 artifacts:
   base-directory: lambda
   files:
