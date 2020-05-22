@@ -1,0 +1,1 @@
+python -m unittest discover lambda "*_test.py"
