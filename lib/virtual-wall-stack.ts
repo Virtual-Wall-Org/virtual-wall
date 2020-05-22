@@ -47,28 +47,37 @@ export class VirtualWallStack extends cdk.Stack {
       }
     });
 
-    const handler = new lambda.Function(this, 'HelloWorldFunction', {
+    const api = new apigateway.RestApi(this, "WallApi", {
+      restApiName: "Wall Service",
+      description: "This service handle wall related operations."
+    });
+    const apiResource = api.root.addResource("api");
+    
+    const WallCountLambdaIntegration = this.createIntegration('WallCountFunction', 'wall.get_wall_count', actualCode, dynamoTable);
+    apiResource.addMethod("GET", WallCountLambdaIntegration);
+    
+    const CreateWallLambdaIntegration = this.createIntegration('CreateWallFunction', 'wall.create_wall', actualCode, dynamoTable);
+    apiResource.addMethod("POST", CreateWallLambdaIntegration);
+    
+    return api;
+  }
+
+  private createIntegration(functionName:string, functionPath:string, actualCode: lambda.Code, dynamoTable: dynamodb.Table) {
+    const wallCountHandler = new lambda.Function(this, functionName, {
       code: actualCode,
-      handler: 'hello_world.helloWorld',
+      handler: functionPath,
       runtime: lambda.Runtime.PYTHON_3_8,
       environment: {
         TABLE_NAME: dynamoTable.tableName,
         PRIMARY_KEY: PRIMARY_KEY
       }
     });
-
-    dynamoTable.grantReadWriteData(handler);
-    dynamoTable.grantFullAccess(handler);
-
-    const api = new apigateway.RestApi(this, "HelloWorldApi", {
-      restApiName: "Hello World Service",
-      description: "This service returns hello world."
-    });
-    const HelloWorldIntegration = new apigateway.LambdaIntegration(handler, {
+    dynamoTable.grantReadWriteData(wallCountHandler);
+    dynamoTable.grantFullAccess(wallCountHandler);
+    const WallCountLambdaIntegration = new apigateway.LambdaIntegration(wallCountHandler, {
       requestTemplates: { "application/json": '{ "statusCode": "200" }' }
     });
-    api.root.addResource("api").addMethod("GET", HelloWorldIntegration);
-    return api;
+    return WallCountLambdaIntegration;
   }
 
   private declareSite(api: apigateway.RestApi, environmentType: EnvironmentType) {

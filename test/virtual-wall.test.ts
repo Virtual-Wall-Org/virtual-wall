@@ -50,9 +50,16 @@ test('Has an CloudFront', () => {
     expectCDK(stack).to(haveOutput({ outputName: 'domainName' }));
 });
 
-test('Has a Lambda Function', () => {
+test('Has a get_wall_count Lambda Function', () => {
     expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
-        "Handler": "hello_world.helloWorld",
+        "Handler": "wall.get_wall_count",
+        "Runtime": "python3.8"
+    }));
+});
+
+test('Has a create_wall Lambda Function', () => {
+    expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
+        "Handler": "wall.create_wall",
         "Runtime": "python3.8"
     }));
 });
@@ -70,11 +77,14 @@ test('Has a Dynamo DB', () => {
 
 test('Has an API ', () => {
     expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::RestApi', {
-        "Description": "This service returns hello world.",
-        "Name": "Hello World Service"
+        "Description": "This service handle wall related operations.",
+        "Name": "Wall Service"
     }));
     expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Method', {
         "HttpMethod": "GET"
+    }));
+    expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Method', {
+        "HttpMethod": "POST"
     }));
     expectCDK(stack).to(haveOutput({ outputName: 'apiUrl' }));
 });
