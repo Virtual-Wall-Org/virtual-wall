@@ -48,7 +48,7 @@ export class VirtualWallStack extends cdk.Stack {
     });
 
     const api = new apigateway.RestApi(this, "WallApi", {
-      restApiName: "Wall Service",
+      restApiName: this.stackName + " - Wall Service",
       description: "This service handle wall related operations."
     });
     const apiResource = api.root.addResource("api");
@@ -58,7 +58,7 @@ export class VirtualWallStack extends cdk.Stack {
     
     const CreateWallLambdaIntegration = this.createIntegration('CreateWallFunction', 'wall.create_wall', actualCode, dynamoTable);
     apiResource.addMethod("POST", CreateWallLambdaIntegration);
-    
+
     return api;
   }
 
