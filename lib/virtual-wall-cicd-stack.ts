@@ -72,7 +72,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const cdkBuild = new codebuild.PipelineProject(this, 'VirtualWall-CdkBuild', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-cdk.yml"),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
@@ -97,7 +97,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildSite', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yml"),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
@@ -113,7 +113,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
     const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildLambda', {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-lambda.yml"),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
       },
       cache : codebuild.Cache.bucket(cacheBucket),
     });
