@@ -5,6 +5,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { CloudFrontWebDistribution, CloudFrontAllowedMethods } from '@aws-cdk/aws-cloudfront';
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import { CfnParameter } from '@aws-cdk/core';
 
 export enum EnvironmentType {
   Local,
@@ -19,9 +20,17 @@ const PRIMARY_KEY = 'wallId';
 
 export class VirtualWallStack extends cdk.Stack {
   public readonly lambdaCode: lambda.CfnParametersCode;
-
+  public readonly environmentName: CfnParameter;
+  
   constructor(scope: cdk.Construct, id: string, props: VirtualWallStackProps) {
     super(scope, id, props);
+
+    this.environmentName = new CfnParameter(this, "environmentName", {
+      type: "String",
+      description: "The name of this environment.",
+      default: this.stackName
+    }
+    );
 
     var actualCode : lambda.Code;
     if(props?.environmentType == EnvironmentType.Local){
@@ -48,7 +57,7 @@ export class VirtualWallStack extends cdk.Stack {
     });
 
     const api = new apigateway.RestApi(this, "WallApi", {
-      restApiName: this.stackName + " - Wall Service",
+      restApiName: this.environmentName.valueAsString + " - Wall Service",
       description: "This service handle wall related operations."
     });
     const apiResource = api.root.addResource("api");

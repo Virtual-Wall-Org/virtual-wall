@@ -76,7 +76,17 @@ test('Has a Dynamo DB', () => {
 test('Has an API ', () => {
     expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::RestApi', {
         "Description": "This service handle wall related operations.",
-        "Name": "MyTestStack - Wall Service"
+        "Name": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "environmentName"
+                },
+                " - Wall Service"
+              ]
+            ]
+          }
     }));
     expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Method', {
         "HttpMethod": "GET"

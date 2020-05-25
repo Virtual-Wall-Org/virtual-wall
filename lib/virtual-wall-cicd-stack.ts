@@ -134,6 +134,7 @@ export class VirtualWallCICDStack extends cdk.Stack {
       adminPermissions: true,
       parameterOverrides: {
         ...props.lambdaCode.assign(lambdaBuildOutput.s3Location),
+        environmentName : env,
       },
       extraInputs: [lambdaBuildOutput],
       output: cloudFormationOutput,
