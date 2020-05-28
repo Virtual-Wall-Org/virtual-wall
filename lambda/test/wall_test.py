@@ -5,12 +5,17 @@ from wall import get_wall_count, create_wall
 
 class TestWall(unittest.TestCase):
 
+    def __create_context(self, db):
+        context = MagicMock()
+        context.database = db
+        return context
+
     def test_get_wall_count(self):
         db = MagicMock()
         db.describe_table = MagicMock(return_value={'Table': {'ItemCount':42}})
-        result = get_wall_count(None, {'database': db})
+        result = get_wall_count(None, self.__create_context(db))
         self.assertEqual(result, {
-            'body': '"{\'Table\': {\'ItemCount\': 42}} elements in the table."',
+            'body': '"42 elements in the table."',
             'headers': {'Cache-Control': 'no-cache'},
             'statusCode': 200
         })
@@ -22,7 +27,7 @@ class TestWall(unittest.TestCase):
         result = create_wall({
             'httpMethod': 'POST',
             'body': '{"wall_name":"my unit test wall name"}'
-        }, {'database': db})
+        }, self.__create_context(db))
         self.assertEqual(result, {
             'body': '"This is the returned item"',
             'headers': {'Cache-Control': 'no-cache'},
