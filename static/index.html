@@ -3,47 +3,35 @@
 <title>Virtual WhiteBoard V0.0</title>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.6.3/fabric.min.js" crossorigin="anonymous"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-<script src="https://d3js.org/d3.v5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.2.0/dist/peerjs.min.js"></script>
 <body>
 
 
   <div class="container">
-    <div class="row">
-      <div class="col-lg-2">
-        <div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
-        <div id="receiver-id" style="font-weight: bold;" title="Copy this ID to the input on send.html.">Current ID:</div>
-        <div id="status">Status unknow</div>
-        <div class="message" id="message"></div>
-        <span style="font-weight: bold">ID: </span>
-        <input type="text" id="receiver-id-connect" title="Input the ID from receive.html">
-        <button id="connect-button">Connect</button>
-        <a class="btn btn-secondary" href="#" id="clear">Clear</a>
-        <input class="btn btn-secondary" type="number" id="sizes" value=2  style="width:90px;">
-        <br><br>
-        <select id="type_object">
-          <option value="line">Line</option>
-          <option value="rect">Rect</option>
-          <option value="circle">Circle</option>
-          <option value="text">Text</option>
-          <option value="none">None</option>
-
-        </select>
-      </div>
-      <div class="w-75 col-lg-10" id="container"><canvas id="c" width="900" height="600"></canvas></div>
+    <div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
+    <div id="form">
+      <input type="text" id="wall_name" placeholder="Wall Name" name="wall_name">
+      <button id="create" onclick="createWall()">Create</button>
+      <div id="response" style="display:none; font-weight: bold; color:green">Creating wall...</div>
     </div>
   </div>
 
 <script>
 
   jQuery.get("/api/", function( data ) {
-    document.getElementById("api-status").innerText = "API Response : " + data;
+    document.getElementById("api-status").innerText = "API Response : " + JSON.stringify(data);
   });
-</script>  
-  <script src="js/canvas.js"></script>
+
+  function createWall(){
+    $("#response").css("display", "block");
+    jQuery.post("/api/", JSON.stringify({
+      "wall_name": $("#wall_name").val()
+    }),
+    function( data ) {
+      document.getElementById("response").innerText = "API Response : " + JSON.stringify(data);
+    });
+
+  }
+</script>
 
 </body>
