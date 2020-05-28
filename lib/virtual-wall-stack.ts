@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from "@aws-cdk/aws-s3";
 import * as s3deploy from "@aws-cdk/aws-s3-deployment";
 import * as lambda from '@aws-cdk/aws-lambda';
-import { CloudFrontWebDistribution, CloudFrontAllowedMethods } from '@aws-cdk/aws-cloudfront';
+import { CloudFrontWebDistribution, CloudFrontAllowedMethods, IDistribution } from '@aws-cdk/aws-cloudfront';
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { CfnParameter } from '@aws-cdk/core';
@@ -91,7 +91,18 @@ export class VirtualWallStack extends cdk.Stack {
 
   private declareSite(api: apigateway.RestApi, environmentType: EnvironmentType) {
     const siteBucket = this.declareBucket(environmentType);
-    this.declareCloudFront(siteBucket, api);
+    const distribution = this.declareCloudFront(siteBucket, api);
+    this.deployBucket(siteBucket, distribution, environmentType);
+  }
+
+  private deployBucket(siteBucket: s3.Bucket, distribution: IDistribution, environmentType: EnvironmentType){
+    if (environmentType == EnvironmentType.Local) {
+      new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+        sources: [s3deploy.Source.asset('./static')],
+        destinationBucket: siteBucket,
+        distribution
+      });
+    }
   }
 
   private declareCloudFront(siteBucket: s3.Bucket, api: apigateway.RestApi) {
@@ -118,6 +129,7 @@ export class VirtualWallStack extends cdk.Stack {
     new cdk.CfnOutput(this, "domainName", {
       value: distribution.domainName
     });
+    return distribution;
   }
 
   private declareBucket(environmentType: EnvironmentType) {
@@ -126,12 +138,6 @@ export class VirtualWallStack extends cdk.Stack {
       websiteErrorDocument: 'error.html',
       publicReadAccess: true,
     });
-    if (environmentType == EnvironmentType.Local) {
-      new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-        sources: [s3deploy.Source.asset('./static')],
-        destinationBucket: siteBucket
-      });
-    }
     new cdk.CfnOutput(this, "bucketName", {
       value: siteBucket.bucketName
     });
