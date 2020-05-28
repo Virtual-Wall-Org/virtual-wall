@@ -5,7 +5,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { CloudFrontWebDistribution, CloudFrontAllowedMethods, IDistribution } from '@aws-cdk/aws-cloudfront';
 import * as apigateway from "@aws-cdk/aws-apigateway";
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
-import { CfnParameter } from '@aws-cdk/core';
+import { CfnParameter, Duration } from '@aws-cdk/core';
 
 export enum EnvironmentType {
   Local,
@@ -76,6 +76,7 @@ export class VirtualWallStack extends cdk.Stack {
       code: actualCode,
       handler: functionPath,
       runtime: lambda.Runtime.PYTHON_3_8,
+      timeout: Duration.seconds(20),
       environment: {
         TABLE_NAME: dynamoTable.tableName,
         PRIMARY_KEY: PRIMARY_KEY

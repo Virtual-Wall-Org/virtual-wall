@@ -53,14 +53,16 @@ test('Has an CloudFront', () => {
 test('Has a get_wall_count Lambda Function', () => {
     expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
         "Handler": "wall.get_wall_count",
-        "Runtime": "python3.8"
+        "Runtime": "python3.8",
+        "Timeout": 20
     }));
 });
 
 test('Has a create_wall Lambda Function', () => {
     expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
         "Handler": "wall.create_wall",
-        "Runtime": "python3.8"
+        "Runtime": "python3.8",
+        "Timeout": 20
     }));
 });
 
