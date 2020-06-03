@@ -125,7 +125,8 @@ export class VirtualWallStack extends cdk.Stack {
             allowedMethods: CloudFrontAllowedMethods.ALL
           }]
         }
-      ]
+      ],
+      comment: this.environmentName.valueAsString
     });
     new cdk.CfnOutput(this, "domainName", {
       value: distribution.domainName

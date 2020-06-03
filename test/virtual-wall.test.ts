@@ -18,6 +18,9 @@ test('Has an S3 Bucket', () => {
 test('Has an CloudFront', () => {
     expectCDK(stack).to(haveResourceLike('AWS::CloudFront::Distribution', {
         "DistributionConfig": {
+            "Comment": {
+                "Ref": "environmentName"
+            },
             "DefaultCacheBehavior": {
                 "AllowedMethods": [
                     "GET",
