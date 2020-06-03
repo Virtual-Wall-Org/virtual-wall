@@ -9,6 +9,16 @@ def get_database(context):
 	import boto3
 	return boto3.client('dynamodb')
 
+def health_check(event, context):
+	return {
+		'statusCode': 200,
+		'body': json.dumps('Alive'),
+		'headers' : {
+			'Cache-Control': 'no-cache'
+		}
+	}
+
+
 def get_wall_count(event, context):
 	dynamodb = get_database(context)
 	element_count = dynamodb.describe_table(TableName=TABLE_NAME)['Table']['ItemCount']
