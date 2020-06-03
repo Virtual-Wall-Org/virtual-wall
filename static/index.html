@@ -18,8 +18,11 @@
 
 <script>
 
-  jQuery.get("/api/wall/123", function( data ) {
-    document.getElementById("api-status").innerText = "API Response : " + JSON.stringify(data);
+  $.get("/api/").done(function( data ) {
+    document.getElementById("api-status").innerText = "API Status : " + JSON.stringify(data);
+  })
+  .error(function( data ) {
+    document.getElementById("api-status").innerText = "Failed : " + JSON.stringify(data);
   });
 
   function createWall(){
