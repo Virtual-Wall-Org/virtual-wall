@@ -85,7 +85,8 @@ export class VirtualWallStack extends cdk.Stack {
 			timeout: Duration.seconds(20),
 			environment: {
 				TABLE_NAME: dynamoTable.tableName,
-				PRIMARY_KEY: PRIMARY_KEY
+				PRIMARY_KEY: PRIMARY_KEY,
+				ENVIRONMENT_NAME: this.environmentName.valueAsString,
 			}
 		});
 		dynamoTable.grantReadWriteData(wallCountHandler);

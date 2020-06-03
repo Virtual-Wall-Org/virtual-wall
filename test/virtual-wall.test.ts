@@ -54,20 +54,31 @@ test('Has an CloudFront', () => {
 });
 
 test('Has a get_wall_count Lambda Function', () => {
-	expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
-		"Handler": "wall.get_wall_count",
-		"Runtime": "python3.8",
-		"Timeout": 20
-	}));
+	checkLambda("wall.get_wall_count");
 });
 
 test('Has a create_wall Lambda Function', () => {
+	checkLambda("wall.create_wall")
+});
+
+test('Has a health_check Lambda Function', () => {
+	checkLambda("wall.health_check")
+});
+
+function checkLambda(handler:string){
 	expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
-		"Handler": "wall.create_wall",
+		"Handler": handler,
+		"Environment" : {
+			"Variables": {
+				"ENVIRONMENT_NAME" : {
+					"Ref": "environmentName"
+				}
+			}
+		},
 		"Runtime": "python3.8",
 		"Timeout": 20
 	}));
-});
+}
 
 test('Has a Dynamo DB', () => {
 	expectCDK(stack).to(haveResourceLike('AWS::DynamoDB::Table', {
