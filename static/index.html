@@ -18,15 +18,13 @@
 
 <script>
 
-  jQuery.get("/api/", function( data ) {
+  jQuery.get("/api/wall/123", function( data ) {
     document.getElementById("api-status").innerText = "API Response : " + JSON.stringify(data);
   });
 
   function createWall(){
     $("#response").css("display", "block");
-    jQuery.post("/api/", JSON.stringify({
-      "wall_name": $("#wall_name").val()
-    }),
+    jQuery.post("/api/wall/" + $("#wall_name").val(), "",
     function( data ) {
       document.getElementById("response").innerText = "API Response : " + JSON.stringify(data);
     });

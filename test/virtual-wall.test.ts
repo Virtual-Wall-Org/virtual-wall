@@ -72,7 +72,7 @@ test('Has a create_wall Lambda Function', () => {
 test('Has a Dynamo DB', () => {
     expectCDK(stack).to(haveResourceLike('AWS::DynamoDB::Table', {
         "KeySchema": [{
-            "AttributeName": "wallId",
+            "AttributeName": "wall_id",
             "KeyType": "HASH"
         }]
     }));

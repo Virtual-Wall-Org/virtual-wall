@@ -16,7 +16,7 @@ export interface VirtualWallStackProps extends cdk.StackProps {
   readonly environmentType: EnvironmentType;
 }
 
-const PRIMARY_KEY = 'wallId';
+const PRIMARY_KEY = 'wall_id';
 
 export class VirtualWallStack extends cdk.Stack {
   public readonly lambdaCode: lambda.CfnParametersCode;
@@ -61,12 +61,14 @@ export class VirtualWallStack extends cdk.Stack {
       description: "This service handle wall related operations."
     });
     const apiResource = api.root.addResource("api");
+    const wallResource = apiResource.addResource("wall");
+    const specificWallResource = wallResource.addResource("{wall_id}");
     
     const WallCountLambdaIntegration = this.createIntegration('WallCountFunction', 'wall.get_wall_count', actualCode, dynamoTable);
-    apiResource.addMethod("GET", WallCountLambdaIntegration);
+    specificWallResource.addMethod("GET", WallCountLambdaIntegration);
     
     const CreateWallLambdaIntegration = this.createIntegration('CreateWallFunction', 'wall.create_wall', actualCode, dynamoTable);
-    apiResource.addMethod("POST", CreateWallLambdaIntegration);
+    specificWallResource.addMethod("POST", CreateWallLambdaIntegration);
 
     return api;
   }
