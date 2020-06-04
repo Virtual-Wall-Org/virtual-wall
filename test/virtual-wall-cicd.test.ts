@@ -9,8 +9,8 @@ const stack = new VirtualWallCICDStack(app, 'MyTestStack', {
     lambdaCode: mainStack.lambdaCode 
 });
 
-test('Has two S3 Bucket for CICD', () => {
-    expectCDK(stack).to(countResources('AWS::S3::Bucket', 2));
+test('Has a S3 Bucket for deployment', () => {
+    expectCDK(stack).to(countResources('AWS::S3::Bucket', 1));
 });
 
 test('Has 3 CodeBuild Project (Site, Lambda and CDK)', () => {

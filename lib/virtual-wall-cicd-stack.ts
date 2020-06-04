@@ -17,7 +17,6 @@ export class VirtualWallCICDStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props: CICDStackProps) {
 		super(scope, id, props);
 
-		const cacheBucket = new s3.Bucket(this, "CacheBucket");
 		const sourceOutput = new codepipeline.Artifact("VirtualWall-Source");
 		const cdkBuildOutput = new codepipeline.Artifact("VirtualWall-Build")
 		const siteBuildOutput = new codepipeline.Artifact("VirtualWall-Site-Build")
@@ -34,9 +33,9 @@ export class VirtualWallCICDStack extends cdk.Stack {
 		pipeline.addStage({
 			stageName: 'Build',
 			actions: [
-				this.buildSite(cacheBucket, sourceOutput, siteBuildOutput),
-				this.buildLambda(cacheBucket, sourceOutput, lambdaBuildOutput),
-				this.buildCdk(cacheBucket, sourceOutput, cdkBuildOutput),
+				this.buildSite(sourceOutput, siteBuildOutput),
+				this.buildLambda(sourceOutput, lambdaBuildOutput),
+				this.buildCdk(sourceOutput, cdkBuildOutput),
 			],
 		});
 
@@ -71,13 +70,12 @@ export class VirtualWallCICDStack extends cdk.Stack {
 		return sourceAction;
 	}
 
-	private buildCdk(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, cdkBuildOutput: codepipeline.Artifact): codepipeline.IAction {
+	private buildCdk(sourceOutput: codepipeline.Artifact, cdkBuildOutput: codepipeline.Artifact): codepipeline.IAction {
 		const cdkBuild = new codebuild.PipelineProject(this, 'VirtualWall-CdkBuild', {
 			buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-cdk.yml"),
 			environment: {
 				buildImage: BUILD_IMAGE,
-			},
-			cache: codebuild.Cache.bucket(cacheBucket),
+			}
 		});
 		cdkBuild.addToRolePolicy(new iam.PolicyStatement({
 			actions: [
@@ -96,13 +94,12 @@ export class VirtualWallCICDStack extends cdk.Stack {
 		});
 	}
 
-	private buildSite(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact): codepipeline.IAction {
+	private buildSite(sourceOutput: codepipeline.Artifact, codeBuildOutput: codepipeline.Artifact): codepipeline.IAction {
 		const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildSite', {
 			buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yml"),
 			environment: {
 				buildImage: BUILD_IMAGE,
 			},
-			cache: codebuild.Cache.bucket(cacheBucket),
 		});
 		return new codepipeline_actions.CodeBuildAction({
 			actionName: 'BuildSite',
@@ -112,13 +109,12 @@ export class VirtualWallCICDStack extends cdk.Stack {
 		});
 	}
 
-	private buildLambda(cacheBucket: s3.Bucket, sourceOutput: codepipeline.Artifact, lambdaBuildOutput: codepipeline.Artifact): codepipeline.IAction {
+	private buildLambda(sourceOutput: codepipeline.Artifact, lambdaBuildOutput: codepipeline.Artifact): codepipeline.IAction {
 		const buildProject = new codebuild.PipelineProject(this, 'VirtualWall-BuildLambda', {
 			buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec-lambda.yml"),
 			environment: {
 				buildImage: BUILD_IMAGE,
 			},
-			cache: codebuild.Cache.bucket(cacheBucket),
 		});
 		return new codepipeline_actions.CodeBuildAction({
 			actionName: 'BuildLambda',
