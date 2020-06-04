@@ -21,7 +21,3 @@ artifacts:
   base-directory: dist
   files:
     - VirtualWallStack.template.json
-
-cache:
-  paths:
-    - 'node_modules/**/*'
