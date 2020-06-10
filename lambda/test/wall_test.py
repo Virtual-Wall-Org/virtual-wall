@@ -69,19 +69,20 @@ class TestWall(unittest.TestCase):
 		})
 
 	def test_create_wall(self):
-		db = MagicMock()
-		db.put_item = MagicMock(return_value='This is the returned item')
+		mock_table = MagicMock()
+		mock_table.put_item = MagicMock(return_value='This is the returned item')
 		result = wall.create_wall({
 			'pathParameters':{'wall_id':'my unit test wall name'},
 			'httpMethod': 'POST',
 			'body': '{}'
-		}, self.__create_context(db))
+		}, self.__create_table_context(mock_table))
+
 		self.assertEqual(result, {
 			'body': '"This is the returned item"',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
-		db.put_item.assert_called_with(TableName='undefined table', Item={'wall_id': {'S': 'my unit test wall name'}})
+		mock_table.put_item.assert_called_with(Item={'wall_id': 'my unit test wall name'})
 
 	def test_get_wall_content(self):
 		db = MagicMock()

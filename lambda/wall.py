@@ -58,12 +58,13 @@ def get_wall_count(event, context):
 	}
 
 def create_wall(event, context): 
-	dynamodb = get_database(context)
-	print(json.dumps(event))
+	table = get_table(context)
 	wall_id = __get_wall_id(event)
-	result = dynamodb.put_item(TableName=TABLE_NAME, Item={
-		'wall_id' : {'S' : wall_id}
-	})
+	result = table.put_item(
+		Item={
+			'wall_id' : wall_id
+		}
+	)
 	return {
 		'statusCode': 200,
 		'body': json.dumps(result),
