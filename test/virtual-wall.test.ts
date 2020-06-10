@@ -105,6 +105,10 @@ test('Has an API ', () => {
 		"PathPart": "{wall_id}"
 	}));
 
+	expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Resource', {
+		"PathPart": "content"
+	}));
+
 	expectCDK(stack).to(haveResourceLike('AWS::ApiGateway::Method', {
 		"HttpMethod": "GET"
 	}));

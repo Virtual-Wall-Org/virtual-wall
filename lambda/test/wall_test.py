@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import MagicMock
-from wall import get_route, routing, get_wall_count, create_wall, health_check
+from wall import get_route, routing, get_wall_count, create_wall, health_check, get_wall_content
 
 class TestWall(unittest.TestCase):
 
@@ -78,6 +78,25 @@ class TestWall(unittest.TestCase):
 			'statusCode': 200
 		})
 		db.put_item.assert_called_with(TableName='undefined table', Item={'wall_id': {'S': 'my unit test wall name'}})
+
+	def test_get_wall_content(self):
+		db = MagicMock()
+		db.get_item = MagicMock(return_value='This is the returned item')
+		result = get_wall_content({
+			'pathParameters':{'wall_id':'my unit test wall name'},
+			'httpMethod': 'GET',
+			'body': '{}'
+		}, self.__create_context(db))
+		self.assertEqual(result, {
+			'body': '"This is the returned item"',
+			'headers': {'Cache-Control': 'no-cache'},
+			'statusCode': 200
+		})
+		db.get_item.assert_called_with(
+			TableName='undefined table', 
+			Key={'wall_id': {'S': 'my unit test wall name'}}, 
+			AttributesToGet=[ 'content', ]
+		)
 
 	def test_health_check(self):
 		result = health_check(None, None)

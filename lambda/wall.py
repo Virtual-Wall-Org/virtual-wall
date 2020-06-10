@@ -13,7 +13,8 @@ def get_route(event):
 	return {
 		'health_check' : health_check,
 		'get_wall_count' : get_wall_count,
-		'create_wall' : create_wall
+		'create_wall' : create_wall,
+		'get_wall_content' : get_wall_content,
 	}.get(__get_operation_name(event))
 
 
@@ -53,9 +54,9 @@ def get_wall_count(event, context):
 def create_wall(event, context): 
 	dynamodb = get_database(context)
 	print(json.dumps(event))
-	wall_name = event['pathParameters']['wall_id']
+	wall_id = __get_wall_id(event)
 	result = dynamodb.put_item(TableName=TABLE_NAME, Item={
-		'wall_id' : {'S' : wall_name}
+		'wall_id' : {'S' : wall_id}
 	})
 	return {
 		'statusCode': 200,
@@ -65,6 +66,28 @@ def create_wall(event, context):
 		}
 	}
 
+def get_wall_content(event, context): 
+	dynamodb = get_database(context)
+	wall_id = __get_wall_id(event)
+	result = dynamodb.get_item(
+		TableName=TABLE_NAME,
+		Key={
+			'wall_id': { 'S': wall_id}
+		},
+		AttributesToGet=[
+			'content',
+		]
+	)
+	return {
+		'statusCode': 200,
+		'body': json.dumps(result),
+		'headers' : {
+			'Cache-Control': 'no-cache'
+		}
+	}
 
 def __get_operation_name(event):
 	return event.get('requestContext', {}).get('operationName', None)
+
+def __get_wall_id(event):
+	return event.get('pathParameters', {}).get('wall_id', None)
