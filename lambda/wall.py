@@ -3,17 +3,11 @@ import os
 
 TABLE_NAME = os.environ.get('TABLE_NAME', 'undefined table')
 
-def get_database(context):
-	if context and hasattr(context, 'database'):
-		return context.database
-	import boto3
-	return boto3.client('dynamodb')
-
 def get_table(context):
 	if context and hasattr(context, 'table'):
 		return context.table
 	import boto3
-	table =  boto3.resource('dynamodb').Table(TABLE_NAME)
+	return boto3.resource('dynamodb').Table(TABLE_NAME)
 
 def get_route(event):
 	return {
@@ -74,12 +68,11 @@ def create_wall(event, context):
 	}
 
 def get_wall_content(event, context): 
-	dynamodb = get_database(context)
+	table = get_table(context)
 	wall_id = __get_wall_id(event)
-	result = dynamodb.get_item(
-		TableName=TABLE_NAME,
+	result = table.get_item(
 		Key={
-			'wall_id': { 'S': wall_id}
+			'wall_id': wall_id
 		},
 		AttributesToGet=[
 			'content',

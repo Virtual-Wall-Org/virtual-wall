@@ -5,11 +5,6 @@ import wall
 
 class TestWall(unittest.TestCase):
 
-	def __create_context(self, db):
-		context = MagicMock()
-		context.database = db
-		return context
-
 	def __create_table_context(self, table):
 		context = MagicMock()
 		context.table = table
@@ -85,21 +80,20 @@ class TestWall(unittest.TestCase):
 		mock_table.put_item.assert_called_with(Item={'wall_id': 'my unit test wall name'})
 
 	def test_get_wall_content(self):
-		db = MagicMock()
-		db.get_item = MagicMock(return_value='This is the returned item')
+		mock_table = MagicMock()
+		mock_table.get_item = MagicMock(return_value='This is the returned item')
 		result = wall.get_wall_content({
 			'pathParameters':{'wall_id':'my unit test wall name'},
 			'httpMethod': 'GET',
 			'body': '{}'
-		}, self.__create_context(db))
+		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
 			'body': '"This is the returned item"',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
-		db.get_item.assert_called_with(
-			TableName='undefined table', 
-			Key={'wall_id': {'S': 'my unit test wall name'}}, 
+		mock_table.get_item.assert_called_with(
+			Key={'wall_id': 'my unit test wall name'}, 
 			AttributesToGet=[ 'content', ]
 		)
 
