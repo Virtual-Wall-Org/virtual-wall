@@ -9,6 +9,13 @@ def get_database(context):
 	import boto3
 	return boto3.client('dynamodb')
 
+def get_route(event):
+	return {
+		'health_check' : health_check,
+		'get_wall_count' : get_wall_count,
+		'create_wall' : create_wall
+	}.get(event.get('requestContext', {}).get('operationName', None))
+
 def health_check(event, context):
 	return {
 		'statusCode': 200,

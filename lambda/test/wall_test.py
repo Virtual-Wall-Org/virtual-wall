@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import MagicMock
-from wall import get_wall_count, create_wall, health_check
+from wall import get_route, get_wall_count, create_wall, health_check
 
 class TestWall(unittest.TestCase):
 
@@ -9,6 +9,22 @@ class TestWall(unittest.TestCase):
 		context = MagicMock()
 		context.database = db
 		return context
+
+	def test_get_route(self):
+		event = {"requestContext":{"operationName":"health_check"}}
+		route = get_route(event)
+		self.assertEqual(route, health_check)
+
+	def test_get_route_no_context(self):
+		event = {}
+		route = get_route(event)
+		self.assertEqual(route, None)
+
+	
+	def test_get_route_no_operation(self):
+		event = {"requestContext":{}}
+		route = get_route(event)
+		self.assertEqual(route, None)
 
 	def test_get_wall_count(self):
 		db = MagicMock()
