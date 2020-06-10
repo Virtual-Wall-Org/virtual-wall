@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import MagicMock
-from wall import get_route, get_wall_count, create_wall, health_check
+from wall import get_route, routing, get_wall_count, create_wall, health_check
 
 class TestWall(unittest.TestCase):
 
@@ -20,7 +20,19 @@ class TestWall(unittest.TestCase):
 		route = get_route(event)
 		self.assertEqual(route, None)
 
-	
+	def test_routing(self):
+		event = {"requestContext":{"operationName":"fake_operation"}}
+		context = "This is a fake context"
+		mock_fake_operation = MagicMock(return_value="fake_result")
+		mock_get_route = MagicMock(return_value=mock_fake_operation)
+		
+		result = routing(event, context, get_route_function=mock_get_route)
+
+		self.assertEquals(result, "fake_result")
+		mock_get_route.assert_called_with(event)
+		mock_fake_operation.assert_called_with(event, context)
+
+
 	def test_get_route_no_operation(self):
 		event = {"requestContext":{}}
 		route = get_route(event)

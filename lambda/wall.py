@@ -16,6 +16,10 @@ def get_route(event):
 		'create_wall' : create_wall
 	}.get(event.get('requestContext', {}).get('operationName', None))
 
+def routing(event, context, get_route_function=None):
+	route = (get_route_function or get_route)(event)
+	return route(event, context)
+
 def health_check(event, context):
 	return {
 		'statusCode': 200,
