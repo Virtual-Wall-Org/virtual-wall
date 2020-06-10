@@ -59,15 +59,14 @@ class TestWall(unittest.TestCase):
 		self.assertEqual(route, None)
 
 	def test_get_wall_count(self):
-		db = MagicMock()
-		db.describe_table = MagicMock(return_value={'Table': {'ItemCount':42}})
-		result = wall.get_wall_count(None, self.__create_context(db))
+		mock_table = MagicMock()
+		mock_table.item_count = 42
+		result = wall.get_wall_count(None, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
 			'body': '"42 elements in the table."',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
-		db.describe_table.assert_called_with(TableName='undefined table')
 
 	def test_create_wall(self):
 		db = MagicMock()

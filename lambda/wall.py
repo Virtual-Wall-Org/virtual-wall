@@ -48,11 +48,10 @@ def health_check(event, context):
 	}
 
 def get_wall_count(event, context):
-	dynamodb = get_database(context)
-	element_count = dynamodb.describe_table(TableName=TABLE_NAME)['Table']['ItemCount']
+	table = get_table(context)
 	return {
 		'statusCode': 200,
-		'body': json.dumps(str(element_count) + ' elements in the table.'),
+		'body': json.dumps(str(table.item_count) + ' elements in the table.'),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}
