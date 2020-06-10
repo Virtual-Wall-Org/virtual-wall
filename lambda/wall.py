@@ -92,7 +92,7 @@ def get_wall_content(event, context):
 	)
 	return {
 		'statusCode': 200,
-		'body': to_json(result),
+		'body': to_json(result.get('Item', {}).get('content', {})),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}

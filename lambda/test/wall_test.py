@@ -82,14 +82,14 @@ class TestWall(unittest.TestCase):
 
 	def test_get_wall_content(self):
 		mock_table = MagicMock()
-		mock_table.get_item = MagicMock(return_value='This is the returned item')
+		mock_table.get_item = MagicMock(return_value={})
 		result = wall.get_wall_content({
 			'pathParameters':{'wall_id':'my unit test wall name'},
 			'httpMethod': 'GET',
 			'body': '{}'
 		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
-			'body': '"This is the returned item"',
+			'body': '{}',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
@@ -113,7 +113,7 @@ class TestWall(unittest.TestCase):
 			'body': '{}'
 		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
-			'body': '{"Item": {"content": {"strokes": ["1.2"]}}}',
+			'body': '{"strokes": ["1.2"]}',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
