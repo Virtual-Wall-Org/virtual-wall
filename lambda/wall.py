@@ -9,12 +9,19 @@ def get_database(context):
 	import boto3
 	return boto3.client('dynamodb')
 
+def get_table(context):
+	if context and hasattr(context, 'table'):
+		return context.table
+	import boto3
+	table =  boto3.resource('dynamodb').Table(TABLE_NAME)
+
 def get_route(event):
 	return {
 		'health_check' : health_check,
 		'get_wall_count' : get_wall_count,
 		'create_wall' : create_wall,
 		'get_wall_content' : get_wall_content,
+		'put_wall_content' : put_wall_content,
 	}.get(__get_operation_name(event))
 
 
@@ -78,6 +85,31 @@ def get_wall_content(event, context):
 			'content',
 		]
 	)
+	return {
+		'statusCode': 200,
+		'body': json.dumps(result),
+		'headers' : {
+			'Cache-Control': 'no-cache'
+		}
+	}
+
+def put_wall_content(event, context): 
+	table =  get_table(context)
+
+	wall_id = __get_wall_id(event)
+	content = json.loads(event['body'])
+	
+	result = table.update_item(
+		Key={
+			'wall_id': wall_id
+		},
+		AttributeUpdates={
+			'content': {
+				'Value': content
+			}
+		}
+	)
+	
 	return {
 		'statusCode': 200,
 		'body': json.dumps(result),

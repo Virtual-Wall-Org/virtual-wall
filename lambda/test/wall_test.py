@@ -1,7 +1,7 @@
 import os
 import unittest
 from unittest.mock import MagicMock
-from wall import get_route, routing, get_wall_count, create_wall, health_check, get_wall_content
+import wall
 
 class TestWall(unittest.TestCase):
 
@@ -10,14 +10,19 @@ class TestWall(unittest.TestCase):
 		context.database = db
 		return context
 
+	def __create_table_context(self, table):
+		context = MagicMock()
+		context.table = table
+		return context
+
 	def test_get_route(self):
 		event = {"requestContext":{"operationName":"health_check"}}
-		route = get_route(event)
-		self.assertEqual(route, health_check)
+		route = wall.get_route(event)
+		self.assertEqual(route, wall.health_check)
 
 	def test_get_route_no_context(self):
 		event = {}
-		route = get_route(event)
+		route = wall.get_route(event)
 		self.assertEqual(route, None)
 
 	def test_routing(self):
@@ -26,7 +31,7 @@ class TestWall(unittest.TestCase):
 		mock_fake_operation = MagicMock(return_value="fake_result")
 		mock_get_route = MagicMock(return_value=mock_fake_operation)
 		
-		result = routing(event, context, get_route_function=mock_get_route)
+		result = wall.routing(event, context, get_route_function=mock_get_route)
 
 		self.assertEqual(result, "fake_result")
 		mock_get_route.assert_called_with(event)
@@ -37,7 +42,7 @@ class TestWall(unittest.TestCase):
 		context = "This is a fake context"
 		mock_get_route = MagicMock(return_value=None)
 		
-		result = routing(event, context, get_route_function=mock_get_route)
+		result = wall.routing(event, context, get_route_function=mock_get_route)
 
 		self.assertEqual(result, {
 			'statusCode': 404,
@@ -50,13 +55,13 @@ class TestWall(unittest.TestCase):
 
 	def test_get_route_no_operation(self):
 		event = {"requestContext":{}}
-		route = get_route(event)
+		route = wall.get_route(event)
 		self.assertEqual(route, None)
 
 	def test_get_wall_count(self):
 		db = MagicMock()
 		db.describe_table = MagicMock(return_value={'Table': {'ItemCount':42}})
-		result = get_wall_count(None, self.__create_context(db))
+		result = wall.get_wall_count(None, self.__create_context(db))
 		self.assertEqual(result, {
 			'body': '"42 elements in the table."',
 			'headers': {'Cache-Control': 'no-cache'},
@@ -67,7 +72,7 @@ class TestWall(unittest.TestCase):
 	def test_create_wall(self):
 		db = MagicMock()
 		db.put_item = MagicMock(return_value='This is the returned item')
-		result = create_wall({
+		result = wall.create_wall({
 			'pathParameters':{'wall_id':'my unit test wall name'},
 			'httpMethod': 'POST',
 			'body': '{}'
@@ -82,7 +87,7 @@ class TestWall(unittest.TestCase):
 	def test_get_wall_content(self):
 		db = MagicMock()
 		db.get_item = MagicMock(return_value='This is the returned item')
-		result = get_wall_content({
+		result = wall.get_wall_content({
 			'pathParameters':{'wall_id':'my unit test wall name'},
 			'httpMethod': 'GET',
 			'body': '{}'
@@ -98,8 +103,30 @@ class TestWall(unittest.TestCase):
 			AttributesToGet=[ 'content', ]
 		)
 
+	def test_put_wall_content(self):
+		mock_table = MagicMock()
+		mock_table.update_item = MagicMock(return_value='This is the returned item')
+		result = wall.put_wall_content({
+			'pathParameters':{'wall_id':'my unit test wall name'},
+			'httpMethod': 'GET',
+			'body': '{"strokes":[1,2,3],"texts":[]}'
+		}, self.__create_table_context(mock_table))
+		self.assertEqual(result, {
+			'body': '"This is the returned item"',
+			'headers': {'Cache-Control': 'no-cache'},
+			'statusCode': 200
+		})
+		mock_table.update_item.assert_called_with(
+			Key={'wall_id': 'my unit test wall name'}, 
+			AttributeUpdates={
+				'content': {
+					'Value': {"strokes":[1,2,3],"texts":[]}
+				}
+			}
+		)
+
 	def test_health_check(self):
-		result = health_check(None, None)
+		result = wall.health_check(None, None)
 		self.assertEqual(result, {
 			'body': '"Alive"',
 			'headers': {'Cache-Control': 'no-cache'},

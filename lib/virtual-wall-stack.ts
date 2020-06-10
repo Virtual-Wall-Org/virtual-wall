@@ -73,6 +73,7 @@ export class VirtualWallStack extends cdk.Stack {
 
 		const specificWallContentResource = specificWallResource.addResource('content');
 		specificWallContentResource.addMethod("GET", RoutingLambdaIntegration, { operationName: 'get_wall_content' });
+		specificWallContentResource.addMethod("PUT", RoutingLambdaIntegration, { operationName: 'put_wall_content' });
 
 		return api;
 	}
