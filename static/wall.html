@@ -15,7 +15,9 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-2">
-        <div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
+		<div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
+		<div id="wall-id" style="display:block; font-weight: bold; color:blue"></div>
+        
         <div id="receiver-id" style="font-weight: bold;" title="Copy this ID to the input on send.html.">Current ID:</div>
         <div id="status">Status unknow</div>
         <div class="message" id="message"></div>
@@ -39,10 +41,14 @@
   </div>
 
 <script>
-
+  var hash = $(location).attr('hash').substr(1);
+  $("#wall-id").text("Welcome to the " + hash + " wall");
+  
   jQuery.get("/api/", function( data ) {
     document.getElementById("api-status").innerText = "API Response : " + data;
   });
+
+  
 </script>  
   <script src="js/canvas.js"></script>
 

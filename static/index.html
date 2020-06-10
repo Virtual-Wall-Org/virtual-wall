@@ -8,29 +8,33 @@
 
 
   <div class="container">
-    <div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
-    <div id="form">
-      <input type="text" id="wall_name" placeholder="Wall Name" name="wall_name">
-      <button id="create" onclick="createWall()">Create</button>
-      <div id="response" style="display:none; font-weight: bold; color:green">Creating wall...</div>
-    </div>
+	<div id="api-status" style="display:block; font-weight: bold; color:green">Waiting API response...</div>
+	<div id="form">
+	  <input type="text" id="wall_name" placeholder="Wall Name" name="wall_name">
+	  <button id="create" onclick="createWall()">Create</button>
+	  <div id="response" style="display:none; font-weight: bold; color:green">Creating wall...</div>
+	</div>
   </div>
 
 <script>
 
-  $.get("/api/").done(function( data ) {
-    document.getElementById("api-status").innerText = "API Status : " + JSON.stringify(data);
-  })
-  .error(function( data ) {
-    document.getElementById("api-status").innerText = "Failed : " + JSON.stringify(data);
-  });
+$.get("/api/").done(function( data ) {
+	document.getElementById("api-status").innerText = "API Status : " + JSON.stringify(data);
+})
+.error(function( data ) {
+	document.getElementById("api-status").innerText = "Failed : " + JSON.stringify(data);
+});
 
-  function createWall(){
-    $("#response").css("display", "block");
-    jQuery.post("/api/wall/" + $("#wall_name").val(), "",
-    function( data ) {
-      document.getElementById("response").innerText = "API Response : " + JSON.stringify(data);
-    });
+function createWall(){
+	$("#response").css("display", "block");
+	jQuery.post("/api/wall/" + $("#wall_name").val(), "",
+	function( data ) {
+		document.getElementById("response").innerText = "API Response : " + JSON.stringify(data);
+	
+		setTimeout(function(){ 
+			window.location.replace("./wall.html#" + $("#wall_name").val()); }
+		, 3000);		
+	});
 
   }
 </script>
