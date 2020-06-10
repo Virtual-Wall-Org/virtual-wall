@@ -1,5 +1,6 @@
 import json
 import os
+import decimal
 
 TABLE_NAME = os.environ.get('TABLE_NAME', 'undefined table')
 
@@ -8,6 +9,17 @@ def get_table(context):
 		return context.table
 	import boto3
 	return boto3.resource('dynamodb').Table(TABLE_NAME)
+
+class BotoEncoder(json.JSONEncoder):
+	def default(self, o):
+		if isinstance(o, decimal.Decimal):
+			return str(o)
+		if isinstance(o, set):
+			return list(o)
+		return super(BotoEncoder, self).default(o)
+
+def to_json(content):
+	return json.dumps(content, cls=BotoEncoder)
 
 def get_route(event):
 	return {
@@ -35,7 +47,7 @@ def routing(event, context, get_route_function=None):
 def health_check(event, context):
 	return {
 		'statusCode': 200,
-		'body': json.dumps('Alive'),
+		'body': to_json('Alive'),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}
@@ -45,7 +57,7 @@ def get_wall_count(event, context):
 	table = get_table(context)
 	return {
 		'statusCode': 200,
-		'body': json.dumps(str(table.item_count) + ' elements in the table.'),
+		'body': to_json(str(table.item_count) + ' elements in the table.'),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}
@@ -61,7 +73,7 @@ def create_wall(event, context):
 	)
 	return {
 		'statusCode': 200,
-		'body': json.dumps(result),
+		'body': to_json(result),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}
@@ -80,7 +92,7 @@ def get_wall_content(event, context):
 	)
 	return {
 		'statusCode': 200,
-		'body': json.dumps(result),
+		'body': to_json(result),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}
@@ -105,7 +117,7 @@ def put_wall_content(event, context):
 	
 	return {
 		'statusCode': 200,
-		'body': json.dumps(result),
+		'body': to_json(result),
 		'headers' : {
 			'Cache-Control': 'no-cache'
 		}

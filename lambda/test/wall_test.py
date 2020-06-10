@@ -2,6 +2,7 @@ import os
 import unittest
 from unittest.mock import MagicMock
 import wall
+import decimal 
 
 class TestWall(unittest.TestCase):
 
@@ -89,6 +90,30 @@ class TestWall(unittest.TestCase):
 		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
 			'body': '"This is the returned item"',
+			'headers': {'Cache-Control': 'no-cache'},
+			'statusCode': 200
+		})
+		mock_table.get_item.assert_called_with(
+			Key={'wall_id': 'my unit test wall name'}, 
+			AttributesToGet=[ 'content', ]
+		)
+	
+	def test_get_wall_content_with_decimal(self):
+		mock_table = MagicMock()
+		mock_table.get_item = MagicMock(return_value={"Item": {
+			"content": {
+				"strokes": [
+					decimal.Decimal("1.2")
+				]
+			}
+		}})
+		result = wall.get_wall_content({
+			'pathParameters':{'wall_id':'my unit test wall name'},
+			'httpMethod': 'GET',
+			'body': '{}'
+		}, self.__create_table_context(mock_table))
+		self.assertEqual(result, {
+			'body': '{"Item": {"content": {"strokes": ["1.2"]}}}',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})
