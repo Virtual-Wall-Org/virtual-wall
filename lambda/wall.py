@@ -14,11 +14,21 @@ def get_route(event):
 		'health_check' : health_check,
 		'get_wall_count' : get_wall_count,
 		'create_wall' : create_wall
-	}.get(event.get('requestContext', {}).get('operationName', None))
+	}.get(__get_operation_name(event))
+
 
 def routing(event, context, get_route_function=None):
 	route = (get_route_function or get_route)(event)
-	return route(event, context)
+	if route:
+		return route(event, context)
+
+	return {
+		'statusCode': 404,
+		'body': 'Unknown operation %s.' % (__get_operation_name(event)),
+		'headers' : {
+			'Cache-Control': 'no-cache'
+		}
+	}
 
 def health_check(event, context):
 	return {
@@ -28,7 +38,6 @@ def health_check(event, context):
 			'Cache-Control': 'no-cache'
 		}
 	}
-
 
 def get_wall_count(event, context):
 	dynamodb = get_database(context)
@@ -56,3 +65,6 @@ def create_wall(event, context):
 		}
 	}
 
+
+def __get_operation_name(event):
+	return event.get('requestContext', {}).get('operationName', None)

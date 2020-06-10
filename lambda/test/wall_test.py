@@ -28,10 +28,25 @@ class TestWall(unittest.TestCase):
 		
 		result = routing(event, context, get_route_function=mock_get_route)
 
-		self.assertEquals(result, "fake_result")
+		self.assertEqual(result, "fake_result")
 		mock_get_route.assert_called_with(event)
 		mock_fake_operation.assert_called_with(event, context)
 
+	def test_routing_unknown_route(self):
+		event = {"requestContext":{"operationName":"unknown_operation"}}
+		context = "This is a fake context"
+		mock_get_route = MagicMock(return_value=None)
+		
+		result = routing(event, context, get_route_function=mock_get_route)
+
+		self.assertEqual(result, {
+			'statusCode': 404,
+			'body': 'Unknown operation unknown_operation.',
+			'headers' : {
+				'Cache-Control': 'no-cache'
+			}
+		})
+		mock_get_route.assert_called_with(event)
 
 	def test_get_route_no_operation(self):
 		event = {"requestContext":{}}
