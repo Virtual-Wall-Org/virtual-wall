@@ -53,21 +53,9 @@ test('Has an CloudFront', () => {
 	expectCDK(stack).to(haveOutput({ outputName: 'domainName' }));
 });
 
-test('Has a get_wall_count Lambda Function', () => {
-	checkLambda("wall.get_wall_count");
-});
-
-test('Has a create_wall Lambda Function', () => {
-	checkLambda("wall.create_wall")
-});
-
-test('Has a health_check Lambda Function', () => {
-	checkLambda("wall.health_check")
-});
-
-function checkLambda(handler:string){
+test('Has a routing Lambda Function', () => {
 	expectCDK(stack).to(haveResourceLike('AWS::Lambda::Function', {
-		"Handler": handler,
+		"Handler": 'wall.routing',
 		"Environment" : {
 			"Variables": {
 				"ENVIRONMENT_NAME" : {
@@ -78,7 +66,7 @@ function checkLambda(handler:string){
 		"Runtime": "python3.8",
 		"Timeout": 20
 	}));
-}
+});
 
 test('Has a Dynamo DB', () => {
 	expectCDK(stack).to(haveResourceLike('AWS::DynamoDB::Table', {

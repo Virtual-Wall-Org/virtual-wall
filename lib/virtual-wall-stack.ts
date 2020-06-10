@@ -56,23 +56,20 @@ export class VirtualWallStack extends cdk.Stack {
 			}
 		});
 
+		const RoutingLambdaIntegration = this.createIntegration('WallRouting', 'wall.routing', actualCode, dynamoTable);
+
 		const api = new apigateway.RestApi(this, "WallApi", {
 			restApiName: this.environmentName.valueAsString + " - Wall Service",
 			description: "This service handle wall related operations."
 		});
 		const apiResource = api.root.addResource("api");
-
-		const HealthCheckLambdaIntegration = this.createIntegration('HealthCheckFunction', 'wall.health_check', actualCode, dynamoTable);
-		apiResource.addMethod("GET", HealthCheckLambdaIntegration);
+		apiResource.addMethod("GET", RoutingLambdaIntegration, { operationName: 'health_check' });
 
 		const wallResource = apiResource.addResource("wall");
 		const specificWallResource = wallResource.addResource("{wall_id}");
 
-		const WallCountLambdaIntegration = this.createIntegration('WallCountFunction', 'wall.get_wall_count', actualCode, dynamoTable);
-		specificWallResource.addMethod("GET", WallCountLambdaIntegration);
-
-		const CreateWallLambdaIntegration = this.createIntegration('CreateWallFunction', 'wall.create_wall', actualCode, dynamoTable);
-		specificWallResource.addMethod("POST", CreateWallLambdaIntegration);
+		specificWallResource.addMethod("GET", RoutingLambdaIntegration, { operationName: 'get_wall_count' });
+		specificWallResource.addMethod("POST", RoutingLambdaIntegration, { operationName: 'create_wall' });
 
 		return api;
 	}
