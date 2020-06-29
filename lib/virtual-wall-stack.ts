@@ -53,7 +53,9 @@ export class VirtualWallStack extends cdk.Stack {
 			partitionKey: {
 				name: PRIMARY_KEY,
 				type: dynamodb.AttributeType.STRING
-			}
+			},
+			readCapacity: 1,
+			writeCapacity: 1
 		});
 
 		const RoutingLambdaIntegration = this.createIntegration('WallRouting', 'wall.routing', actualCode, dynamoTable);
