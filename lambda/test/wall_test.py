@@ -113,7 +113,7 @@ class TestWall(unittest.TestCase):
 			'body': '{}'
 		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
-			'body': '{"strokes": ["1.2"]}',
+			'body': '{"strokes": [1.2]}',
 			'headers': {'Cache-Control': 'no-cache'},
 			'statusCode': 200
 		})

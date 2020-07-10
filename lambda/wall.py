@@ -13,7 +13,10 @@ def get_table(context):
 class BotoEncoder(json.JSONEncoder):
 	def default(self, o):
 		if isinstance(o, decimal.Decimal):
-			return str(o)
+			if o % 1 > 0:
+				return float(o)
+			else:
+				return int(o)
 		if isinstance(o, set):
 			return list(o)
 		return super(BotoEncoder, self).default(o)
