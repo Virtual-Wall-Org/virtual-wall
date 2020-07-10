@@ -42,10 +42,12 @@
 
 <script>
   var hash = $(location).attr('hash').substr(1);
+  var content = {}
   $("#wall-id").text("Welcome to the " + hash + " wall");
-  
-  jQuery.get("/api/", function( data ) {
-    document.getElementById("api-status").innerText = "API Response : " + data;
+  jQuery.get("/api/wall/" + hash + "/content", function( data ) {
+    document.getElementById("api-status").innerText = "Data loaded...";
+	console.log(data);
+	content = data;
   });
 
   
