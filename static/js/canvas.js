@@ -1,9 +1,29 @@
 var canvas = this.__canvas = new fabric.Canvas('c');
 // create a rect object
 
+var lastTimeout = undefined;
+
 function CheckObjectToDraw() {
   e=document.getElementById("type_object");
   return e.options[e.selectedIndex].value;
+}
+
+function saveContent(){
+	var hash = $(location).attr('hash').substr(1);
+	clearTimeout(lastTimeout);
+	lastTimeout = setTimeout(function() {
+		document.getElementById("api-status").innerText = "Saving data...";
+		$.ajax({
+			method: "PUT",
+			url: "/api/wall/" + hash + "/content",
+			contentType: "application/json",
+			data: JSON.stringify(canvas.toDatalessJSON()),
+		}).done(function(response) {
+			document.getElementById("api-status").innerText = "Data saved.";
+			console.log(response);
+		});
+	}, 1000);
+
 }
 
 current_object=null;
@@ -31,6 +51,31 @@ function init()
       canvas.renderAll(); 
     }
   });
+
+	canvas.on('object:modified', function(options) {
+		saveContent();
+	});
+
+	canvas.on('object:added', function(options) {
+		saveContent();
+	});
+
+	canvas.on('object:removed', function(options) {
+		saveContent();
+	});
+
+	var hash = $(location).attr('hash').substr(1);
+	$("#wall-id").text("Welcome to the " + hash + " wall");
+
+	document.getElementById("api-status").innerText = "Loading data...";
+	jQuery.get("/api/wall/" + hash + "/content", function( data ) {
+		document.getElementById("api-status").innerText = "Data loaded.";
+		console.log(data);
+		canvas.loadFromJSON(data, function(obj) {
+			canvas.renderAll();
+		});
+	});
+
 }
 
 function drawObject(x, y)
