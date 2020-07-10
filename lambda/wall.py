@@ -102,7 +102,7 @@ def put_wall_content(event, context):
 	table =  get_table(context)
 
 	wall_id = __get_wall_id(event)
-	content = json.loads(event['body'])
+	content = json.loads(event['body'], parse_float=decimal.Decimal)
 	
 	result = table.update_item(
 		Key={

@@ -127,8 +127,8 @@ class TestWall(unittest.TestCase):
 		mock_table.update_item = MagicMock(return_value='This is the returned item')
 		result = wall.put_wall_content({
 			'pathParameters':{'wall_id':'my unit test wall name'},
-			'httpMethod': 'GET',
-			'body': '{"strokes":[1,2,3],"texts":[]}'
+			'httpMethod': 'PUT',
+			'body': '{"strokes":[1,2,3,4.64],"texts":[]}'
 		}, self.__create_table_context(mock_table))
 		self.assertEqual(result, {
 			'body': '"This is the returned item"',
@@ -139,7 +139,7 @@ class TestWall(unittest.TestCase):
 			Key={'wall_id': 'my unit test wall name'}, 
 			AttributeUpdates={
 				'content': {
-					'Value': {"strokes":[1,2,3],"texts":[]}
+					'Value': {"strokes":[1,2,3,decimal.Decimal('4.64')],"texts":[]}
 				}
 			}
 		)
